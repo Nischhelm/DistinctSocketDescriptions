@@ -1,6 +1,7 @@
 package distinctsocketeddescriptions;
 
 import distinctsocketeddescriptions.config.DefaultJsonAddons;
+import distinctsocketeddescriptions.util.DDDDamageTypeHelper;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +24,7 @@ public class DistinctSocketedDescriptions {
 
     @Mod.EventHandler
     public static void init(FMLInitializationEvent event) {
+        DDDDamageTypeHelper.init();
         DefaultJsonAddons.initializeBuiltinEntries();
     }
 }
