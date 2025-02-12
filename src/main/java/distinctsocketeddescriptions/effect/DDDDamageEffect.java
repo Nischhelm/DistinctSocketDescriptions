@@ -2,47 +2,46 @@ package distinctsocketeddescriptions.effect;
 
 import com.google.gson.annotations.SerializedName;
 import distinctsocketeddescriptions.util.DDDDamageTypeHelper;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import socketed.Socketed;
+import socketed.common.socket.gem.effect.activatable.ActivatableGemEffect;
+import socketed.common.socket.gem.effect.activatable.activator.GenericActivator;
 import socketed.common.socket.gem.util.RandomValueRange;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import socketed.common.capabilities.effectscache.CapabilityEffectsCacheHandler;
-import socketed.common.capabilities.effectscache.ICapabilityEffectsCache;
-import socketed.common.socket.gem.effect.GenericGemEffect;
 import socketed.common.socket.gem.effect.slot.ISlotType;
 import yeelp.distinctdamagedescriptions.api.DDDDamageType;
 import yeelp.distinctdamagedescriptions.api.impl.DDDBuiltInDamageType;
 import yeelp.distinctdamagedescriptions.event.classification.DetermineDamageEvent;
 
-public class DDDEffect extends GenericGemEffect {
+public class DDDDamageEffect extends ActivatableGemEffect {
     public static final String TYPE_NAME = "DDD Damage";
     @SerializedName("DamageTypeName")
     private final String typeName;
     @SerializedName("Amount")
     private final RandomValueRange amountRange;
 
-    private DDDDamageType type;
-    private float amount;
+    private transient DDDDamageType type;
+    private transient float amount;
 
-    public DDDEffect(ISlotType slotType, String typeName, RandomValueRange amountRange) {
-        super(slotType);
+    public DDDDamageEffect(ISlotType slotType, GenericActivator activatorType, String typeName, RandomValueRange amountRange) {
+        super(slotType, activatorType);
         this.typeName = typeName;
         this.amountRange = amountRange;
     }
 
-    public DDDEffect(DDDEffect effect) {
-        super(effect.getSlotType());
+    public DDDDamageEffect(DDDDamageEffect effect) {
+        super(effect.getSlotType(), effect.activatorType);
         this.typeName = effect.typeName;
-        this.type = DDDDamageTypeHelper.getFromString(this.typeName);
         this.amountRange = effect.amountRange;
+
+        this.type = DDDDamageTypeHelper.getFromString(this.typeName);
         this.amount = this.amountRange.generateValue();
     }
 
     @Override
     public String getTooltipString(boolean b) {
-        return "Test";
+        return "";
     }
 
     @Override
@@ -50,8 +49,18 @@ public class DDDEffect extends GenericGemEffect {
         return TYPE_NAME;
     }
 
-    public DDDEffect instantiate() {
-        return new DDDEffect(this);
+    public DDDDamageEffect instantiate() {
+        return new DDDDamageEffect(this);
+    }
+
+    @Override
+    public void performEffect(EntityPlayer entityPlayer, EntityLivingBase entityLivingBase) {
+        //no op
+    }
+
+    public void performEffect(DetermineDamageEvent event) {
+        float currDmg = event.getDamage(type);
+        event.setDamage(type, currDmg + amount);
     }
 
     public boolean validate() {
@@ -71,7 +80,7 @@ public class DDDEffect extends GenericGemEffect {
         NBTTagCompound nbt = new NBTTagCompound();
         if (this.type != null && this.type != DDDBuiltInDamageType.UNKNOWN) {
             nbt.setString("Type", this.type.getTypeName());
-            nbt.setDouble("Amount", this.amount);
+            nbt.setFloat("Amount", this.amount);
         }
 
         return nbt;
@@ -80,28 +89,5 @@ public class DDDEffect extends GenericGemEffect {
     public void readFromNBT(NBTTagCompound nbt) {
         this.type = DDDDamageTypeHelper.getFromString(nbt.getString("Type"));
         this.amount = nbt.getFloat("Amount");
-    }
-
-    public void performEffect(DetermineDamageEvent event) {
-        float currDmg = event.getDamage(type);
-        event.setDamage(type, currDmg + amount);
-    }
-
-    @Mod.EventBusSubscriber
-    public static class EventHandler {
-        @SubscribeEvent
-        public static void onDDD(DetermineDamageEvent event) {
-            if (!(event.getTrueAttacker() instanceof EntityPlayer)) return;
-            if (event.getTrueAttacker().world.isRemote) return;
-
-            EntityPlayer player = (EntityPlayer) event.getTrueAttacker();
-            ICapabilityEffectsCache cachedEffects = player.getCapability(CapabilityEffectsCacheHandler.CAP_EFFECTS_CACHE, null);
-            if (cachedEffects == null) return;
-
-            for (GenericGemEffect effect : cachedEffects.getActiveEffects()) {
-                if (!(effect instanceof DDDEffect)) continue;
-                ((DDDEffect) effect).performEffect(event);
-            }
-        }
     }
 }

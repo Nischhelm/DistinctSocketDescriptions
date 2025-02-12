@@ -1,11 +1,15 @@
 package distinctsocketeddescriptions;
 
+import distinctsocketeddescriptions.activator.DDDAttackingActivator;
 import distinctsocketeddescriptions.config.DefaultJsonAddons;
+import distinctsocketeddescriptions.effect.DDDDamageEffect;
 import distinctsocketeddescriptions.util.DDDDamageTypeHelper;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import socketed.common.util.SocketedUtil;
 
 @Mod(
         modid = DistinctSocketedDescriptions.MODID,
@@ -24,7 +28,11 @@ public class DistinctSocketedDescriptions {
 
     @Mod.EventHandler
     public static void init(FMLInitializationEvent event) {
-        DDDDamageTypeHelper.init();
-        DefaultJsonAddons.initializeBuiltinEntries();
+        if(Loader.isModLoaded("distinctdamagedescriptions")){
+            DDDDamageTypeHelper.init();
+            DefaultJsonAddons.initializeBuiltinEntries();
+            SocketedUtil.registerActivator(DDDAttackingActivator.TYPE_NAME, DDDAttackingActivator.class, DistinctSocketedDescriptions.MODID);
+            SocketedUtil.registerEffectType(DDDDamageEffect.TYPE_NAME, DDDDamageEffect.class, DistinctSocketedDescriptions.MODID);
+        }
     }
 }
