@@ -1,2 +1,2 @@
-# DistinctSocketDescriptions
+# DistinctSocketedDescriptions
  Socketed Expansion for DDD
