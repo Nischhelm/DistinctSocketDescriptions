@@ -1,6 +1,5 @@
-package distinctsocketeddescriptions.activator;
+package distinctsocketeddescriptions.effect;
 
-import distinctsocketeddescriptions.effect.DetermineDamageEffect;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -8,14 +7,19 @@ import socketed.common.capabilities.effectscache.CapabilityEffectsCacheHandler;
 import socketed.common.capabilities.effectscache.ICapabilityEffectsCache;
 import socketed.common.socket.gem.effect.GenericGemEffect;
 import socketed.common.socket.gem.effect.activatable.activator.GenericActivator;
+import socketed.common.socket.gem.effect.slot.ISlotType;
 import yeelp.distinctdamagedescriptions.event.classification.DetermineDamageEvent;
 
-public class DetermineDamageActivator extends GenericActivator {
-    public static final String TYPE_NAME = "DDD Activator";
+public class DDDEffect extends GenericGemEffect {
+    public static final String TYPE_NAME = "DDD Damage";
+
+    protected DDDEffect(ISlotType slotType, GenericActivator activatorType) {
+        super(slotType);
+    }
 
     @Override
-    public String getTooltipString() {
-        return ""; //No tooltip
+    public String getTooltipString(boolean b) {
+        return "";
     }
 
     @Override
@@ -23,12 +27,7 @@ public class DetermineDamageActivator extends GenericActivator {
         return TYPE_NAME;
     }
 
-    @Override
-    public boolean validate() {
-        return true;
-    }
-
-    public void attemptActivation(DetermineDamageEffect dddEffect, EntityPlayer player) {
+    public void performEffect(DetermineDamageEvent event) {
 
     }
 
@@ -44,14 +43,9 @@ public class DetermineDamageActivator extends GenericActivator {
             if (cachedEffects == null) return;
 
             for (GenericGemEffect effect : cachedEffects.getActiveEffects()) {
-                if (!(effect instanceof DetermineDamageEffect)) continue;
-                DetermineDamageEffect dddEffect = (DetermineDamageEffect) effect;
-                if (!(dddEffect.getActivatorType() instanceof DetermineDamageActivator)) continue;
-
-                DetermineDamageActivator dddActivator = (DetermineDamageActivator) dddEffect.getActivatorType();
-                dddActivator.attemptActivation(dddEffect, player);
+                if (!(effect instanceof DDDEffect)) continue;
+                ((DDDEffect) effect).performEffect(event);
             }
         }
     }
 }
-
