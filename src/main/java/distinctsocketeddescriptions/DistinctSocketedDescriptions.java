@@ -1,8 +1,11 @@
 package distinctsocketeddescriptions;
 
 import distinctsocketeddescriptions.activator.DDDAttackingActivator;
+import distinctsocketeddescriptions.activator.DDDDefenseActivator;
 import distinctsocketeddescriptions.config.DefaultJsonAddons;
 import distinctsocketeddescriptions.effect.DDDDamageEffect;
+import distinctsocketeddescriptions.effect.DDDImmunityEffect;
+import distinctsocketeddescriptions.effect.DDDResistanceEffect;
 import distinctsocketeddescriptions.util.DDDDamageTypeHelper;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
@@ -32,7 +35,11 @@ public class DistinctSocketedDescriptions {
             DDDDamageTypeHelper.init();
             DefaultJsonAddons.initializeBuiltinEntries();
             SocketedUtil.registerActivator(DDDAttackingActivator.TYPE_NAME, DDDAttackingActivator.class, DistinctSocketedDescriptions.MODID);
+            SocketedUtil.registerActivator(DDDDefenseActivator.TYPE_NAME, DDDDefenseActivator.class, DistinctSocketedDescriptions.MODID);
+
             SocketedUtil.registerEffectType(DDDDamageEffect.TYPE_NAME, DDDDamageEffect.class, DistinctSocketedDescriptions.MODID);
+            SocketedUtil.registerEffectType(DDDResistanceEffect.TYPE_NAME, DDDResistanceEffect.class, DistinctSocketedDescriptions.MODID);
+            SocketedUtil.registerEffectType(DDDImmunityEffect.TYPE_NAME, DDDImmunityEffect.class, DistinctSocketedDescriptions.MODID);
         }
     }
 }

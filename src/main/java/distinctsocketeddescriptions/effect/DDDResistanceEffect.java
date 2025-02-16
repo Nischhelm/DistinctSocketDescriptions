@@ -12,25 +12,25 @@ import socketed.common.socket.gem.effect.slot.ISlotType;
 import socketed.common.socket.gem.util.RandomValueRange;
 import yeelp.distinctdamagedescriptions.api.DDDDamageType;
 import yeelp.distinctdamagedescriptions.api.impl.DDDBuiltInDamageType;
-import yeelp.distinctdamagedescriptions.event.classification.DetermineDamageEvent;
+import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent;
 
-public class DDDDamageEffect extends ActivatableGemEffect {
-    public static final String TYPE_NAME = "DDD Damage";
+public class DDDResistanceEffect extends ActivatableGemEffect {
+    public static final String TYPE_NAME = "DDD Resistance";
     @SerializedName("DamageTypeName")
-    private final String typeName;
+    protected final String typeName;
     @SerializedName("Amount")
-    private final RandomValueRange amountRange;
+    protected final RandomValueRange amountRange;
 
-    private transient DDDDamageType type;
-    private transient float amount;
+    protected transient DDDDamageType type;
+    protected transient float amount;
 
-    public DDDDamageEffect(ISlotType slotType, GenericActivator activatorType, String typeName, RandomValueRange amountRange) {
+    public DDDResistanceEffect(ISlotType slotType, GenericActivator activatorType, String typeName, RandomValueRange amountRange) {
         super(slotType, activatorType);
         this.typeName = typeName;
         this.amountRange = amountRange;
     }
 
-    public DDDDamageEffect(DDDDamageEffect effect) {
+    public DDDResistanceEffect(DDDResistanceEffect effect) {
         super(effect.getSlotType(), effect.activatorType);
         this.typeName = effect.typeName;
         this.amountRange = effect.amountRange;
@@ -50,8 +50,8 @@ public class DDDDamageEffect extends ActivatableGemEffect {
         return TYPE_NAME;
     }
 
-    public DDDDamageEffect instantiate() {
-        return new DDDDamageEffect(this);
+    public DDDResistanceEffect instantiate() {
+        return new DDDResistanceEffect(this);
     }
 
     @Override
@@ -59,9 +59,9 @@ public class DDDDamageEffect extends ActivatableGemEffect {
         //no op
     }
 
-    public void performEffect(DetermineDamageEvent event) {
-        float currDmg = event.getDamage(type);
-        event.setDamage(type, currDmg + amount);
+    public void performEffect(GatherDefensesEvent event) {
+        float currResistance = event.getResistance(type);
+        event.setResistance(type, currResistance + amount);
     }
 
     public boolean validate() {

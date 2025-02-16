@@ -1,11 +1,11 @@
 package distinctsocketeddescriptions.config;
 
+import distinctsocketeddescriptions.DistinctSocketedDescriptions;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import distinctsocketeddescriptions.DistinctSocketedDescriptions;
 
 @Config(modid = DistinctSocketedDescriptions.MODID, name = DistinctSocketedDescriptions.MODNAME, category = "")
 public class ForgeConfig {

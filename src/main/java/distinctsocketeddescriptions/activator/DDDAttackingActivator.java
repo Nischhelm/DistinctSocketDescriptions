@@ -20,10 +20,10 @@ import socketed.common.socket.gem.effect.slot.SocketedSlotTypes;
 import yeelp.distinctdamagedescriptions.event.classification.DetermineDamageEvent;
 
 public class DDDAttackingActivator extends AttackingActivator {
-    public static final String TYPE_NAME = "DDD Attacking";
+    public static final String TYPE_NAME = "DDD Attacking Activator";
 
-    public DDDAttackingActivator(boolean affectsSelf, boolean affectsTarget, boolean allowsMelee, boolean allowsRanged, boolean directlyActivated) {
-        super(affectsSelf, affectsTarget, allowsMelee, allowsRanged, directlyActivated);
+    public DDDAttackingActivator(boolean allowsMelee, boolean allowsRanged, boolean directlyActivated) {
+        super(false, true, allowsMelee, allowsRanged, directlyActivated);
     }
 
     @Override
