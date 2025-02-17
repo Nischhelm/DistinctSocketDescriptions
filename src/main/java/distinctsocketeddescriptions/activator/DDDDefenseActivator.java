@@ -1,10 +1,15 @@
 package distinctsocketeddescriptions.activator;
 
 import com.google.gson.annotations.SerializedName;
+import distinctsocketeddescriptions.DistinctSocketedDescriptions;
+import distinctsocketeddescriptions.compat.FirstAidCompat;
+import distinctsocketeddescriptions.compat.ModLoaded;
 import distinctsocketeddescriptions.effect.DDDResistanceEffect;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -98,14 +103,17 @@ public class DDDDefenseActivator extends GenericActivator {
             //Get all hit body parts from DDD combat tracker -> armor classification -> armor map
             //Assumption: armor map only stores the equipment slots for body parts that actually got hit
             //-> first aid (body part that got hit) / magma blocks (feet) / falling blocks+anvil (head)
-            DDDAPI.accessor.getDDDCombatTracker(player).flatMap(IDDDCombatTracker::getArmorClassification).ifPresent(
-                    ac -> ac.forEachArmorMap(
-                            (entityEquipmentSlot, armorMap) ->
-                        directActivationStacks.add(player.getItemStackFromSlot(entityEquipmentSlot))
-                    )
-            );
-
-            //TODO: this doesn't work yet with first aid cause DDD assumptions about how FirstAid handles hit body parts were not correct
+            if(!ModLoaded.isFirstAidLoaded()) {
+                DDDAPI.accessor.getDDDCombatTracker(player).flatMap(IDDDCombatTracker::getArmorClassification).ifPresent(
+                        ac -> ac.forEachArmorMap(
+                                (entityEquipmentSlot, armorMap) ->
+                                        directActivationStacks.add(player.getItemStackFromSlot(entityEquipmentSlot))
+                        )
+                );
+            } else {
+                List<EntityEquipmentSlot> affectedSlots = FirstAidCompat.getAndClearAffectedBodySlots();
+                affectedSlots.forEach(slot -> directActivationStacks.add(player.getItemStackFromSlot(slot)));
+            }
 
             //DistinctSocketedDescriptions.LOGGER.info("Hit body parts: {}",directActivationStacks.size());
             //directActivationStacks.forEach(stack -> player.sendMessage(new TextComponentString(stack.getItem().getRegistryName().toString() )));
