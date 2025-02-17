@@ -6,7 +6,6 @@ import distinctsocketeddescriptions.config.DefaultJsonAddons;
 import distinctsocketeddescriptions.effect.DDDDamageEffect;
 import distinctsocketeddescriptions.effect.DDDImmunityEffect;
 import distinctsocketeddescriptions.effect.DDDResistanceEffect;
-import distinctsocketeddescriptions.util.DDDDamageTypeHelper;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -32,7 +31,6 @@ public class DistinctSocketedDescriptions {
     @Mod.EventHandler
     public static void init(FMLInitializationEvent event) {
         if(Loader.isModLoaded("distinctdamagedescriptions")){
-            DDDDamageTypeHelper.init();
             DefaultJsonAddons.initializeBuiltinEntries();
             SocketedUtil.registerActivator(DDDAttackingActivator.TYPE_NAME, DDDAttackingActivator.class, DistinctSocketedDescriptions.MODID);
             SocketedUtil.registerActivator(DDDDefenseActivator.TYPE_NAME, DDDDefenseActivator.class, DistinctSocketedDescriptions.MODID);

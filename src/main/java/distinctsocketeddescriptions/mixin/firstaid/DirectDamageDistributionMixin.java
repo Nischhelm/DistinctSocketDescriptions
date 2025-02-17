@@ -1,12 +1,10 @@
 package distinctsocketeddescriptions.mixin.firstaid;
 
-import distinctsocketeddescriptions.DistinctSocketedDescriptions;
 import distinctsocketeddescriptions.compat.FirstAidCompat;
 import ichttt.mods.firstaid.api.enums.EnumPlayerPart;
 import ichttt.mods.firstaid.common.damagesystem.distribution.DirectDamageDistribution;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.text.TextComponentString;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

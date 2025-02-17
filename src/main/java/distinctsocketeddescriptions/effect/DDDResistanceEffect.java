@@ -1,7 +1,6 @@
 package distinctsocketeddescriptions.effect;
 
 import com.google.gson.annotations.SerializedName;
-import distinctsocketeddescriptions.util.DDDDamageTypeHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -13,6 +12,7 @@ import socketed.common.socket.gem.util.RandomValueRange;
 import yeelp.distinctdamagedescriptions.api.DDDDamageType;
 import yeelp.distinctdamagedescriptions.api.impl.DDDBuiltInDamageType;
 import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent;
+import yeelp.distinctdamagedescriptions.registries.DDDRegistries;
 
 public class DDDResistanceEffect extends ActivatableGemEffect {
     public static final String TYPE_NAME = "DDD Resistance";
@@ -35,7 +35,7 @@ public class DDDResistanceEffect extends ActivatableGemEffect {
         this.typeName = effect.typeName;
         this.amountRange = effect.amountRange;
 
-        this.type = DDDDamageTypeHelper.getFromString(this.typeName);
+        this.type = DDDRegistries.damageTypes.get(this.typeName);
         this.amount = this.amountRange.generateValue();
     }
 
@@ -88,7 +88,7 @@ public class DDDResistanceEffect extends ActivatableGemEffect {
     }
 
     public void readFromNBT(NBTTagCompound nbt) {
-        this.type = DDDDamageTypeHelper.getFromString(nbt.getString("Type"));
+        this.type = DDDRegistries.damageTypes.get(nbt.getString("Type"));
         this.amount = nbt.getFloat("Amount");
     }
 }
