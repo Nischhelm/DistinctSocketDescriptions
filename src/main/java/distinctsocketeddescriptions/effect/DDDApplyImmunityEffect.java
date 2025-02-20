@@ -13,16 +13,17 @@ import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DDDResistanceEffect extends DDDAmountEffect {
-    public static final String TYPE_NAME = "DDD Resistance";
+//Same as DDDResistanceEffect just adding Immunities instead of Resistance on GatherDefensesEvent of player
+public class DDDApplyImmunityEffect extends DDDAmountEffect {
+    public static final String TYPE_NAME = "DDD Apply Immunity";
 
-    public DDDResistanceEffect(ISlotType slotType, GenericActivator activatorType, List<GenericTarget> targets, String damageTypeName, RandomValueRange amountRange) {
-        super(slotType, activatorType, targets, damageTypeName, amountRange);
+    public DDDApplyImmunityEffect(ISlotType slotType, GenericActivator activatorType, List<GenericTarget> targets, String typeName, RandomValueRange amountRange) {
+        super(slotType, activatorType, targets, typeName, amountRange);
     }
 
-    public DDDResistanceEffect(DDDResistanceEffect effect) {
+    public DDDApplyImmunityEffect(DDDApplyImmunityEffect effect) {
         super(effect);
-        //Instantiates Amount in DDDAmountEffect constructor
+        //Instantiates amount in DDDAmountEffect constructor
     }
 
     //TODO
@@ -36,8 +37,8 @@ public class DDDResistanceEffect extends DDDAmountEffect {
         return TYPE_NAME;
     }
 
-    public DDDResistanceEffect instantiate() {
-        return new DDDResistanceEffect(this);
+    public DDDApplyImmunityEffect instantiate() {
+        return new DDDApplyImmunityEffect(this);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class DDDResistanceEffect extends DDDAmountEffect {
         if(!(((GenericEventCallback<?>) callback).getEvent() instanceof GatherDefensesEvent)) return;
         GatherDefensesEvent event = (GatherDefensesEvent) ((GenericEventCallback<?>) callback).getEvent();
 
-        float currResistance = event.getResistance(damageType);
-        event.setResistance(damageType, currResistance + amount);
+        if(!event.hasImmunity(damageType))
+            event.addImmunity(damageType);
     }
 }

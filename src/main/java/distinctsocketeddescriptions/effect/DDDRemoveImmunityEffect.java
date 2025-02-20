@@ -7,22 +7,16 @@ import socketed.common.socket.gem.effect.activatable.callback.GenericEventCallba
 import socketed.common.socket.gem.effect.activatable.callback.IEffectCallback;
 import socketed.common.socket.gem.effect.activatable.target.GenericTarget;
 import socketed.common.socket.gem.effect.slot.ISlotType;
-import socketed.common.socket.gem.util.RandomValueRange;
 import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DDDResistanceEffect extends DDDAmountEffect {
-    public static final String TYPE_NAME = "DDD Resistance";
+public class DDDRemoveImmunityEffect extends DDDEffect {
+    public static final String TYPE_NAME = "DDD Remove Immunity";
 
-    public DDDResistanceEffect(ISlotType slotType, GenericActivator activatorType, List<GenericTarget> targets, String damageTypeName, RandomValueRange amountRange) {
-        super(slotType, activatorType, targets, damageTypeName, amountRange);
-    }
-
-    public DDDResistanceEffect(DDDResistanceEffect effect) {
-        super(effect);
-        //Instantiates Amount in DDDAmountEffect constructor
+    public DDDRemoveImmunityEffect(ISlotType slotType, GenericActivator activatorType, List<GenericTarget> targets, String typeName) {
+        super(slotType, activatorType, targets, typeName);
     }
 
     //TODO
@@ -36,17 +30,13 @@ public class DDDResistanceEffect extends DDDAmountEffect {
         return TYPE_NAME;
     }
 
-    public DDDResistanceEffect instantiate() {
-        return new DDDResistanceEffect(this);
-    }
-
     @Override
-    public void performEffect(@Nullable IEffectCallback callback, EntityPlayer entityPlayer, EntityLivingBase effectTarget) {
+    public void performEffect(@Nullable IEffectCallback callback, EntityPlayer entityPlayer, EntityLivingBase entityLivingBase) {
         if(!(callback instanceof GenericEventCallback)) return;
         if(!(((GenericEventCallback<?>) callback).getEvent() instanceof GatherDefensesEvent)) return;
         GatherDefensesEvent event = (GatherDefensesEvent) ((GenericEventCallback<?>) callback).getEvent();
-
-        float currResistance = event.getResistance(damageType);
-        event.setResistance(damageType, currResistance + amount);
+        
+        if(event.hasImmunity(this.damageType))
+            event.removeImmunity(this.damageType);
     }
 }

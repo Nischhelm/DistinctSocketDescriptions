@@ -1,42 +1,29 @@
-package distinctsocketeddescriptions.effect;
+package distinctsocketeddescriptions.effect.determinedamage;
 
-import com.google.gson.annotations.SerializedName;
+import distinctsocketeddescriptions.effect.DDDAmountEffect;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import socketed.Socketed;
-import socketed.common.socket.gem.effect.activatable.ActivatableGemEffect;
 import socketed.common.socket.gem.effect.activatable.activator.GenericActivator;
+import socketed.common.socket.gem.effect.activatable.callback.GenericEventCallback;
+import socketed.common.socket.gem.effect.activatable.callback.IEffectCallback;
+import socketed.common.socket.gem.effect.activatable.target.GenericTarget;
 import socketed.common.socket.gem.effect.slot.ISlotType;
 import socketed.common.socket.gem.util.RandomValueRange;
-import yeelp.distinctdamagedescriptions.api.DDDDamageType;
-import yeelp.distinctdamagedescriptions.api.impl.DDDBuiltInDamageType;
 import yeelp.distinctdamagedescriptions.event.classification.DetermineDamageEvent;
-import yeelp.distinctdamagedescriptions.registries.DDDRegistries;
 
-public class DDDDamageEffect extends ActivatableGemEffect {
+import javax.annotation.Nullable;
+import java.util.List;
+
+public class DDDDamageEffect extends DDDAmountEffect {
     public static final String TYPE_NAME = "DDD Damage";
-    @SerializedName("DamageTypeName")
-    private final String typeName;
-    @SerializedName("Amount")
-    private final RandomValueRange amountRange;
 
-    private transient DDDDamageType type;
-    private transient float amount;
-
-    public DDDDamageEffect(ISlotType slotType, GenericActivator activatorType, String typeName, RandomValueRange amountRange) {
-        super(slotType, activatorType);
-        this.typeName = typeName;
-        this.amountRange = amountRange;
+    public DDDDamageEffect(ISlotType slotType, GenericActivator activatorType, List<GenericTarget> targets, String typeName, RandomValueRange amountRange) {
+        super(slotType, activatorType, targets, typeName, amountRange);
     }
 
     public DDDDamageEffect(DDDDamageEffect effect) {
-        super(effect.getSlotType(), effect.activatorType);
-        this.typeName = effect.typeName;
-        this.amountRange = effect.amountRange;
-
-        this.type = DDDRegistries.damageTypes.get(this.typeName);
-        this.amount = this.amountRange.generateValue();
+        super(effect);
+        //Instantiates amount in DDDAmountEffect constructor
     }
 
     //TODO
@@ -55,40 +42,12 @@ public class DDDDamageEffect extends ActivatableGemEffect {
     }
 
     @Override
-    public void performEffect(EntityPlayer entityPlayer, EntityLivingBase entityLivingBase) {
-        //no op
-    }
-
-    public void performEffect(DetermineDamageEvent event) {
-        float currDmg = event.getDamage(type);
-        event.setDamage(type, currDmg + amount);
-    }
-
-    public boolean validate() {
-        if (super.validate()) {
-            if (this.typeName == null || this.typeName.isEmpty())
-                Socketed.LOGGER.warn("Invalid " + this.typeName + " Effect, damage type null or empty");
-            else if (this.amountRange == null)
-                Socketed.LOGGER.warn("Invalid " + this.typeName + " Effect, " + this.typeName + ", amount range invalid");
-            else
-                return true;
-        }
-
-        return false;
-    }
-
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound nbt = new NBTTagCompound();
-        if (this.type != null && this.type != DDDBuiltInDamageType.UNKNOWN) {
-            nbt.setString("Type", this.type.getTypeName());
-            nbt.setFloat("Amount", this.amount);
-        }
-
-        return nbt;
-    }
-
-    public void readFromNBT(NBTTagCompound nbt) {
-        this.type = DDDRegistries.damageTypes.get(nbt.getString("Type"));
-        this.amount = nbt.getFloat("Amount");
+    public void performEffect(@Nullable IEffectCallback callback, EntityPlayer entityPlayer, EntityLivingBase entityLivingBase) {
+        if(!(callback instanceof GenericEventCallback)) return;
+        if(!(((GenericEventCallback<?>) callback).getEvent() instanceof DetermineDamageEvent)) return;
+        DetermineDamageEvent event = (DetermineDamageEvent) ((GenericEventCallback<?>) callback).getEvent();
+        
+        float currDmg = event.getDamage(damageType);
+        event.setDamage(damageType, currDmg + amount);
     }
 }

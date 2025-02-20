@@ -1,10 +1,11 @@
 package distinctsocketeddescriptions;
 
+import distinctsocketeddescriptions.activator.DDDAttackedActivator;
 import distinctsocketeddescriptions.activator.DDDAttackingActivator;
-import distinctsocketeddescriptions.activator.DDDDefenseActivator;
 import distinctsocketeddescriptions.config.DefaultJsonAddons;
-import distinctsocketeddescriptions.effect.DDDDamageEffect;
-import distinctsocketeddescriptions.effect.DDDImmunityEffect;
+import distinctsocketeddescriptions.effect.DDDApplyImmunityEffect;
+import distinctsocketeddescriptions.effect.determinedamage.DDDDamageEffect;
+import distinctsocketeddescriptions.effect.DDDRemoveImmunityEffect;
 import distinctsocketeddescriptions.effect.DDDResistanceEffect;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
@@ -33,11 +34,12 @@ public class DistinctSocketedDescriptions {
         if(Loader.isModLoaded("distinctdamagedescriptions")){
             DefaultJsonAddons.initializeBuiltinEntries();
             SocketedUtil.registerActivator(DDDAttackingActivator.TYPE_NAME, DDDAttackingActivator.class, DistinctSocketedDescriptions.MODID);
-            SocketedUtil.registerActivator(DDDDefenseActivator.TYPE_NAME, DDDDefenseActivator.class, DistinctSocketedDescriptions.MODID);
+            SocketedUtil.registerActivator(DDDAttackedActivator.TYPE_NAME, DDDAttackedActivator.class, DistinctSocketedDescriptions.MODID);
 
             SocketedUtil.registerEffectType(DDDDamageEffect.TYPE_NAME, DDDDamageEffect.class, DistinctSocketedDescriptions.MODID);
             SocketedUtil.registerEffectType(DDDResistanceEffect.TYPE_NAME, DDDResistanceEffect.class, DistinctSocketedDescriptions.MODID);
-            SocketedUtil.registerEffectType(DDDImmunityEffect.TYPE_NAME, DDDImmunityEffect.class, DistinctSocketedDescriptions.MODID);
+            SocketedUtil.registerEffectType(DDDApplyImmunityEffect.TYPE_NAME, DDDApplyImmunityEffect.class, DistinctSocketedDescriptions.MODID);
+            SocketedUtil.registerEffectType(DDDRemoveImmunityEffect.TYPE_NAME, DDDRemoveImmunityEffect.class, DistinctSocketedDescriptions.MODID);
         }
     }
 }
