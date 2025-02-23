@@ -1,6 +1,5 @@
-package distinctsocketeddescriptions.effect.determinedamage;
+package distinctsocketeddescriptions.effect;
 
-import distinctsocketeddescriptions.effect.DDDAmountEffect;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import socketed.common.socket.gem.effect.activatable.activator.GenericActivator;

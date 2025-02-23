@@ -22,11 +22,18 @@ public abstract class DDDEffect extends ActivatableGemEffect {
         this.damageTypeName = damageTypeName;
     }
 
+    public DDDEffect(DDDEffect effect) {
+        //ActivatableGemEffect itself is never instantiated
+        super(effect.slotType, effect.activator, effect.targets);
+        this.damageTypeName = effect.damageTypeName;
+        //Mainly need to copy dmg type object
+        this.damageType = effect.damageType;
+    }
+
     public boolean validate() {
         if (super.validate()) {
-            if (this.damageTypeName == null || this.damageTypeName.isEmpty())
-                Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, damage type null or empty");
-            else {
+            if (this.damageTypeName == null || this.damageTypeName.isEmpty()) Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, damage type null or empty");
+            else{
                 this.damageType = DDDRegistries.damageTypes.get(this.damageTypeName);
                 if(this.damageType == null) Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, damage type, " +this.damageTypeName+" does not exist");
                 else return true;

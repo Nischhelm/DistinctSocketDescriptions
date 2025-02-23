@@ -22,7 +22,7 @@ public abstract class DDDAmountEffect extends DDDEffect {
     }
 
     public DDDAmountEffect(DDDAmountEffect effect) {
-        super(effect.getSlotType(), effect.activator, effect.targets, effect.getTypeName());
+        super(effect);
         this.amountRange = effect.amountRange;
 
         this.amount = this.amountRange.generateValue();

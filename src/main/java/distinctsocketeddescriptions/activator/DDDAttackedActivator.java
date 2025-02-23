@@ -86,6 +86,7 @@ public class DDDAttackedActivator extends AttackActivator {
             if(isMelee) attacker = (EntityLivingBase)event.getImmediateAttacker();
             else if(isRanged) attacker = (EntityLivingBase)event.getTrueAttacker();
             else return;
+            //TODO: not allowing OTHER makes you unable to reduce stuff like being in fire dmg and other "environmental" dmgs
 
             //Don't trigger on self damage if that manages to happen
             if(target == attacker) return;

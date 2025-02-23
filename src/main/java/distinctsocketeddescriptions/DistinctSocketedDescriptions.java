@@ -4,7 +4,7 @@ import distinctsocketeddescriptions.activator.DDDAttackedActivator;
 import distinctsocketeddescriptions.activator.DDDAttackingActivator;
 import distinctsocketeddescriptions.config.DefaultJsonAddons;
 import distinctsocketeddescriptions.effect.DDDApplyImmunityEffect;
-import distinctsocketeddescriptions.effect.determinedamage.DDDDamageEffect;
+import distinctsocketeddescriptions.effect.DDDDamageEffect;
 import distinctsocketeddescriptions.effect.DDDRemoveImmunityEffect;
 import distinctsocketeddescriptions.effect.DDDResistanceEffect;
 import net.minecraftforge.fml.common.Loader;

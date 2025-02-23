@@ -2,7 +2,7 @@ package distinctsocketeddescriptions.config;
 
 import distinctsocketeddescriptions.activator.DDDAttackingActivator;
 import distinctsocketeddescriptions.activator.DDDAttackedActivator;
-import distinctsocketeddescriptions.effect.determinedamage.DDDDamageEffect;
+import distinctsocketeddescriptions.effect.DDDDamageEffect;
 import distinctsocketeddescriptions.effect.DDDResistanceEffect;
 import net.minecraft.util.text.TextFormatting;
 import socketed.common.config.DefaultJsonConfig;
