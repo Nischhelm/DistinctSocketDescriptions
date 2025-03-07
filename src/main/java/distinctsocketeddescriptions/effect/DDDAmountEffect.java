@@ -3,12 +3,8 @@ package distinctsocketeddescriptions.effect;
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.nbt.NBTTagCompound;
 import socketed.Socketed;
-import socketed.common.socket.gem.effect.activatable.activator.GenericActivator;
-import socketed.common.socket.gem.effect.activatable.target.GenericTarget;
-import socketed.common.socket.gem.effect.slot.ISlotType;
-import socketed.common.socket.gem.util.RandomValueRange;
-
-import java.util.List;
+import socketed.api.socket.gem.effect.slot.ISlotType;
+import socketed.api.socket.gem.util.RandomValueRange;
 
 public abstract class DDDAmountEffect extends DDDEffect {
     @SerializedName("Amount")
@@ -16,8 +12,8 @@ public abstract class DDDAmountEffect extends DDDEffect {
 
     protected transient float amount;
 
-    public DDDAmountEffect(ISlotType slotType, GenericActivator activatorType, List<GenericTarget> targets, String typeName, RandomValueRange amountRange) {
-        super(slotType, activatorType, targets, typeName);
+    public DDDAmountEffect(ISlotType slotType, String typeName, RandomValueRange amountRange, boolean directlyActivated) {
+        super(slotType, typeName, directlyActivated);
         this.amountRange = amountRange;
     }
 

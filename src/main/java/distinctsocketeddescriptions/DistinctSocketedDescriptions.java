@@ -1,7 +1,5 @@
 package distinctsocketeddescriptions;
 
-import distinctsocketeddescriptions.activator.DDDAttackedActivator;
-import distinctsocketeddescriptions.activator.DDDAttackingActivator;
 import distinctsocketeddescriptions.config.DefaultJsonAddons;
 import distinctsocketeddescriptions.effect.DDDApplyImmunityEffect;
 import distinctsocketeddescriptions.effect.DDDDamageEffect;
@@ -12,7 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import socketed.common.util.SocketedUtil;
+import socketed.api.util.SocketedUtil;
 
 @Mod(
         modid = DistinctSocketedDescriptions.MODID,
@@ -33,8 +31,6 @@ public class DistinctSocketedDescriptions {
     public static void init(FMLInitializationEvent event) {
         if(Loader.isModLoaded("distinctdamagedescriptions")){
             DefaultJsonAddons.initializeBuiltinEntries();
-            SocketedUtil.registerActivator(DDDAttackingActivator.TYPE_NAME, DDDAttackingActivator.class, DistinctSocketedDescriptions.MODID);
-            SocketedUtil.registerActivator(DDDAttackedActivator.TYPE_NAME, DDDAttackedActivator.class, DistinctSocketedDescriptions.MODID);
 
             SocketedUtil.registerEffectType(DDDDamageEffect.TYPE_NAME, DDDDamageEffect.class, DistinctSocketedDescriptions.MODID);
             SocketedUtil.registerEffectType(DDDResistanceEffect.TYPE_NAME, DDDResistanceEffect.class, DistinctSocketedDescriptions.MODID);
