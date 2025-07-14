@@ -1,5 +1,6 @@
 package distinctsocketeddescriptions.effect;
 
+import net.minecraft.client.resources.I18n;
 import socketed.api.socket.gem.effect.activatable.callback.GenericEventCallback;
 import socketed.api.socket.gem.effect.activatable.callback.IEffectCallback;
 import socketed.api.socket.gem.effect.slot.ISlotType;
@@ -14,10 +15,9 @@ public class DDDRemoveImmunityEffect extends DDDEffect {
         super(slotType, typeName, directlyActivated);
     }
 
-    //TODO
     @Override
-    public String getTooltipString(boolean b) {
-        return "";
+    public String getTooltip(boolean b) {
+        return I18n.format("dsd.tooltip.effect.removeimmunity", this.damageType.getDisplayName());
     }
 
     @Override

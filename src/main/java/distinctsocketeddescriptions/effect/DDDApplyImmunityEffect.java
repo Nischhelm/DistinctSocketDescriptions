@@ -1,5 +1,6 @@
 package distinctsocketeddescriptions.effect;
 
+import net.minecraft.client.resources.I18n;
 import socketed.api.socket.gem.effect.activatable.callback.GenericEventCallback;
 import socketed.api.socket.gem.effect.activatable.callback.IEffectCallback;
 import socketed.api.socket.gem.effect.slot.ISlotType;
@@ -20,10 +21,9 @@ public class DDDApplyImmunityEffect extends DDDEffect {
         //Instantiates amount in DDDAmountEffect constructor
     }
 
-    //TODO
     @Override
-    public String getTooltipString(boolean b) {
-        return "";
+    public String getTooltip(boolean b) {
+        return I18n.format("dsd.tooltip.effect.immunity", this.damageType.getDisplayName());
     }
 
     @Override
