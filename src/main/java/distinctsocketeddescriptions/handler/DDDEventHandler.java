@@ -110,9 +110,9 @@ public class DDDEventHandler {
 
         //Get all hit body slots from DDD combat tracker -> armor classification -> armor map
         //This will usually be all armored body slots
-        if (!ModLoaded.isFirstAidLoaded())
-            DDDAPI.accessor.getDDDCombatTracker(player).flatMap(IDDDCombatTracker::getArmorClassification).ifPresent(
-                    ac -> ac.forEachArmorMap(
+        if (!ModLoaded.isFirstAidLoaded()) //TODO: no clue if this is correct but it compiles lol
+            DDDAPI.accessor.getDDDCombatTracker(player).flatMap(IDDDCombatTracker::getCurrentCalculation).ifPresent(
+                    dc -> dc.getArmorClassification().forEachArmorMap(
                             (entityEquipmentSlot, armorMap) -> directActivationStacks.add(player.getItemStackFromSlot(entityEquipmentSlot)))
             );
         else
