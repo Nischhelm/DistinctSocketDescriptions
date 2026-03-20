@@ -31,9 +31,8 @@ import java.util.stream.Stream;
 @Mod.EventBusSubscriber
 public class DDDEventHandler {
     /**
-     * Modify attackers DetermineDamageEvent, reduce specific damage types from their dmg map or modify their damage map, using this is NOT RECOMMENDED, rather add resistances or immunities to the player using GatherDefensesEvent
-     * Modify players DetermineDamageEvent, in order to add damages of certain types or modify the damage type map
-     * So in pvp the defenders gems always activate after the attackers gems
+     * Modify players DetermineDamageEvent, in order to add damages of certain types or modify the damage type map.
+     * Only the attackers gems activate here
      */
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onDetermineDamage(DetermineDamageEvent event) {
@@ -41,13 +40,12 @@ public class DDDEventHandler {
         if (event.getTrueAttacker() == null && event.getImmediateAttacker() == null) return;
 
         handleAttacking(event);
-        handleAttacked(event);
     }
 
     /**
      * Modify targets GatherDefensesEvent, to remove their resistances or ignore their immunities
      * Modify players GatherDefensesEvent, add resistances or immunities to the player
-     * So in pvp the defenders gems always activate after the attackers gems
+     * In pvp the attackers gems activate before the defenders gems
      */
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onGatherDefenses(GatherDefensesEvent event) {
@@ -110,19 +108,18 @@ public class DDDEventHandler {
 
         //Get all hit body slots from DDD combat tracker -> armor classification -> armor map
         //This will usually be all armored body slots
-        if (!ModLoaded.isFirstAidLoaded()) //TODO: no clue if this is correct but it compiles lol
+        if (!ModLoaded.isFirstAidLoaded())
             DDDAPI.accessor.getDDDCombatTracker(player).flatMap(IDDDCombatTracker::getCurrentCalculation).ifPresent(
                     dc -> dc.getArmorClassification().forEachArmorMap(
                             (entityEquipmentSlot, armorMap) -> directActivationStacks.add(player.getItemStackFromSlot(entityEquipmentSlot)))
             );
         else
-            FirstAidCompat.getAndClearAffectedBodySlots()
-                    .forEach(slot -> directActivationStacks.add(player.getItemStackFromSlot(slot)));
-
-        //DistinctSocketedDescriptions.LOGGER.info("Hit body parts: {}",directActivationStacks.size());
-        //directActivationStacks.forEach(stack -> player.sendMessage(new TextComponentString(stack.getItem().getRegistryName().toString() )));
+            FirstAidCompat.getAndClearAffectedBodySlots().forEach(
+                    slot -> directActivationStacks.add(player.getItemStackFromSlot(slot))
+            );
 
         for (ItemStack stack : directActivationStacks) {
+            if(stack.isEmpty()) continue;
             ICapabilitySocketable sockets = stack.getCapability(CapabilitySocketableHandler.CAP_SOCKETABLE, null);
             if (sockets != null)
                 filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.BODY))
