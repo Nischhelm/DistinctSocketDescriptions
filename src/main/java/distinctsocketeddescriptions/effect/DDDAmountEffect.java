@@ -8,7 +8,7 @@ import socketed.api.socket.gem.util.RandomValueRange;
 
 public abstract class DDDAmountEffect extends DDDEffect {
     @SerializedName("Amount")
-    private final RandomValueRange amountRange;
+    protected final RandomValueRange amountRange;
 
     protected transient float amount;
 

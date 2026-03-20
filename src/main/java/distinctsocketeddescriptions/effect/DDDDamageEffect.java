@@ -1,6 +1,7 @@
 package distinctsocketeddescriptions.effect;
 
 import net.minecraft.client.resources.I18n;
+import socketed.Socketed;
 import socketed.api.socket.gem.effect.activatable.callback.GenericEventCallback;
 import socketed.api.socket.gem.effect.activatable.callback.IEffectCallback;
 import socketed.api.socket.gem.effect.slot.ISlotType;
@@ -23,7 +24,7 @@ public class DDDDamageEffect extends DDDAmountEffect {
 
     @Override
     public String getTooltip(boolean b) {
-        return I18n.format("dsd.tooltip.effect.damage", this.amount, this.damageType.getDisplayName());
+        return I18n.format("dsd.tooltip.effect.damage", this.amountRange.getTooltip(0), this.damageType.getDisplayName());
     }
 
     @Override
