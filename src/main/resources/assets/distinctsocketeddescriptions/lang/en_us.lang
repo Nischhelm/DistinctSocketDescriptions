@@ -1,7 +1,10 @@
 dsd.tooltip.effect.removeimmunity=Removes immunity to %s
 dsd.tooltip.effect.immunity=Immunity to %s
 dsd.tooltip.effect.resistance=Adds %s%s Resistance
-dsd.tooltip.effect.damage=Adds %s%s Damage
+dsd.tooltip.effect.damage=%s%s Damage
+dsd.tooltip.effect.damage.multiply_extra=%sTotal Damage as %s
+dsd.tooltip.effect.damage.convert=Turn %s%% Damage to %s
+dsd.tooltip.effect.damage.multiply_type=x%s %s Damage
 
 dsd.tooltip.default.fire_damage=+3 Fire Damage
 dsd.tooltip.default.fire_resistance=+50%% Fire Resistance

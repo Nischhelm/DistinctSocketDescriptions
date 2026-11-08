@@ -1,2 +1,1 @@
 - can you remove poison immunity of parasites?
-- multiply dmg of a certain dmg type instead of adding
