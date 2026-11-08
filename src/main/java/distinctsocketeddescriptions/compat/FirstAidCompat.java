@@ -36,4 +36,36 @@ public class FirstAidCompat {
     public static Set<EntityEquipmentSlot> getHitSlots(EntityLivingBase entity) {
         return hitSlots.get(entity);
     }
+
+    /**
+     * Amount of LivingDamage events FirstAid fired so far in the current damage distribution, per player
+     */
+    private static final Map<EntityLivingBase, Integer> distributionRounds = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /**
+     * @return the previous round count, to be restored afterwards via {@link #endDistribution}
+     */
+    @Nullable
+    public static Integer startDistribution(EntityLivingBase entity) {
+        return distributionRounds.put(entity, 0);
+    }
+
+    public static void endDistribution(EntityLivingBase entity, @Nullable Integer previous) {
+        if(previous == null) distributionRounds.remove(entity);
+        else distributionRounds.put(entity, previous);
+    }
+
+    public static void startRound(EntityLivingBase entity) {
+        distributionRounds.computeIfPresent(entity, (e, rounds) -> rounds + 1);
+    }
+
+    /**
+     * FirstAid fires one LivingDamage per distribution round. After the first round DDD starts a new calculation,
+     * reclassifying the remaining damage, which fires DetermineDamage again for the same hit.
+     * @return true if the current damage event is not the first one FirstAid fired for this hit
+     */
+    public static boolean isFollowUpRound(EntityLivingBase entity) {
+        Integer rounds = distributionRounds.get(entity);
+        return rounds != null && rounds > 1;
+    }
 }

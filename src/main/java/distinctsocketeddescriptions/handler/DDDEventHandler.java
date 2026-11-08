@@ -41,6 +41,8 @@ public class DDDEventHandler {
     public static void onDetermineDamage(DetermineDamageEvent event) {
         //DetermineDamage doesn't guarantee that there is a nonnull attacker
         if (event.getTrueAttacker() == null && event.getImmediateAttacker() == null) return;
+        //Prevent adding flat damage again when DDD reclassifies the remaining damage of a FirstAid distribution
+        if (ModLoaded.isFirstAidLoaded() && FirstAidCompat.isFollowUpRound(event.getDefender())) return;
 
         handleAttacking(event);
     }

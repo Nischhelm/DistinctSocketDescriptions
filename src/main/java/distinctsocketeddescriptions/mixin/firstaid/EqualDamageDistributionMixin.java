@@ -26,6 +26,7 @@ public class EqualDamageDistributionMixin {
     )
     private float dsd_trackHitSlots(EntityLivingBase entity, DamageSource source, float amount, Operation<Float> original){
         Set<EntityEquipmentSlot> previous = FirstAidCompat.setHitSlots(entity, EnumSet.of(EntityEquipmentSlot.HEAD, EntityEquipmentSlot.CHEST, EntityEquipmentSlot.LEGS, EntityEquipmentSlot.FEET));
+        FirstAidCompat.startRound(entity);
         try {
             return original.call(entity, source, amount);
         } finally {
