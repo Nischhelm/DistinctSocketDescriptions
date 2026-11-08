@@ -58,6 +58,10 @@ public abstract class DDDEffect extends GenericGemEffect {
         return this.getDefaultActivation();
     }
 
+    public boolean isDirectlyActivated() {
+        return this.directlyActivated;
+    }
+
     /**
      * Activation used if neither Activation is set nor the slot type implies one
      */

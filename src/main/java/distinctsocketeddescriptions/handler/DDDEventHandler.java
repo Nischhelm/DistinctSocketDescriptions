@@ -2,6 +2,7 @@ package distinctsocketeddescriptions.handler;
 
 import distinctsocketeddescriptions.compat.FirstAidCompat;
 import distinctsocketeddescriptions.compat.ModLoaded;
+import distinctsocketeddescriptions.effect.DDDDamageEffect;
 import distinctsocketeddescriptions.effect.DDDEffect;
 import distinctsocketeddescriptions.mixin.ddd.CombatContextAccessor;
 import net.minecraft.entity.Entity;
@@ -45,8 +46,15 @@ public class DDDEventHandler {
         //Prevent adding flat damage again when DDD reclassifies the remaining damage of a FirstAid distribution
         if (ModLoaded.isFirstAidLoaded() && FirstAidCompat.isFollowUpRound(event.getDefender())) return;
 
-        handleAttacking(event);
-        handleAttacked(event, false);
+        //Damage effects are collected first and applied together, so their operations always run in the same order
+        List<DDDDamageEffect> damageEffects = new ArrayList<>();
+        EffectPerformer collector = (effect, directlyActivated) -> {
+            if (effect instanceof DDDDamageEffect && effect.isDirectlyActivated() == directlyActivated)
+                damageEffects.add((DDDDamageEffect) effect);
+        };
+        handleAttacking(event, collector);
+        handleAttacked(event, false, collector);
+        if (!damageEffects.isEmpty()) DDDDamageEffect.applyAll(event, damageEffects);
     }
 
     /**
@@ -56,11 +64,18 @@ public class DDDEventHandler {
      */
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onGatherDefenses(GatherDefensesEvent event) {
-        handleAttacking(event);
-        handleAttacked(event, true);
+        GenericEventCallback<GatherDefensesEvent> callback = new GenericEventCallback<>(event);
+        EffectPerformer performer = (effect, directlyActivated) -> effect.performEffect(callback, directlyActivated);
+        handleAttacking(event, performer);
+        handleAttacked(event, true, performer);
     }
 
-    private static void handleAttacking(DDDClassificationEvent event) {
+    @FunctionalInterface
+    private interface EffectPerformer {
+        void perform(DDDEffect effect, boolean directlyActivated);
+    }
+
+    private static void handleAttacking(DDDClassificationEvent event, EffectPerformer performer) {
         //Guaranteed serverside, since both DDD Events run on LivingDamageEvent
         //Source, attacker, defender are guaranteed @Nonnull
 
@@ -74,13 +89,11 @@ public class DDDEventHandler {
         if (!(attacker instanceof EntityPlayer)) return;
         EntityPlayer player = (EntityPlayer) attacker;
 
-        GenericEventCallback<? extends DDDClassificationEvent> callback = new GenericEventCallback<>(event);
-
         //Handle cached effects
         ICapabilityEffectsCache cachedEffects = player.getCapability(CapabilityEffectsCacheHandler.CAP_EFFECTS_CACHE, null);
         if (cachedEffects != null)
             filterEffects(cachedEffects.getActiveEffects(), DDDEffect.Activation.ATTACKING)
-                    .forEach(effect -> effect.performEffect(callback, false));
+                    .forEach(effect -> performer.perform(effect, false));
 
         //Handle direct activation effects
         //RLCombat swaps offhand into mainhand before posting LivingAttack for offhand attacks, which is still the case during this event
@@ -90,10 +103,10 @@ public class DDDEventHandler {
         ICapabilitySocketable sockets = weaponStack.getCapability(CapabilitySocketableHandler.CAP_SOCKETABLE, null);
         if (sockets != null)
             filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.HAND), DDDEffect.Activation.ATTACKING)
-                    .forEach(effect -> effect.performEffect(callback, true));
+                    .forEach(effect -> performer.perform(effect, true));
     }
 
-    private static void handleAttacked(DDDClassificationEvent event, boolean handleDirectActivation) {
+    private static void handleAttacked(DDDClassificationEvent event, boolean handleDirectActivation, EffectPerformer performer) {
         //Guaranteed serverside since the event is fired in LivingDamageEvent
         //Defender, Source and Player are @Nonnull, attacker can be null but is unused
 
@@ -102,13 +115,11 @@ public class DDDEventHandler {
         if (!(target instanceof EntityPlayer)) return;
         EntityPlayer player = (EntityPlayer) target;
 
-        GenericEventCallback<? extends DDDClassificationEvent> callback = new GenericEventCallback<>(event);
-
         //Handle cached effects
         ICapabilityEffectsCache cachedEffects = player.getCapability(CapabilityEffectsCacheHandler.CAP_EFFECTS_CACHE, null);
         if (cachedEffects != null)
             filterEffects(cachedEffects.getActiveEffects(), DDDEffect.Activation.ATTACKED)
-                    .forEach(effect -> effect.performEffect(callback, false));
+                    .forEach(effect -> performer.perform(effect, false));
 
         if (!handleDirectActivation) return;
 
@@ -134,7 +145,7 @@ public class DDDEventHandler {
             ICapabilitySocketable sockets = stack.getCapability(CapabilitySocketableHandler.CAP_SOCKETABLE, null);
             if (sockets != null)
                 filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.BODY), DDDEffect.Activation.ATTACKED)
-                        .forEach(effect -> effect.performEffect(callback, true));
+                        .forEach(effect -> performer.perform(effect, true));
         }
     }
 

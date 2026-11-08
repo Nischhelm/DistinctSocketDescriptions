@@ -9,6 +9,8 @@ import socketed.api.socket.gem.util.RandomValueRange;
 import yeelp.distinctdamagedescriptions.event.classification.DetermineDamageEvent;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 
 public class DDDDamageEffect extends DDDAmountEffect {
     public static final String TYPE_NAME = "DDD Damage";
@@ -46,10 +48,17 @@ public class DDDDamageEffect extends DDDAmountEffect {
         if(this.directlyActivated != directlyActivated) return;
         if(!(callback instanceof GenericEventCallback)) return;
         if(!(((GenericEventCallback<?>) callback).getEvent() instanceof DetermineDamageEvent)) return;
-        DetermineDamageEvent event = (DetermineDamageEvent) ((GenericEventCallback<?>) callback).getEvent();
-        
-        float currDmg = event.getDamage(damageType);
-        //DDD throws on negative damage, negative amounts can only reduce the damage of a type to 0
-        event.setDamage(damageType, Math.max(0, currDmg + amount));
+        applyAll((DetermineDamageEvent) ((GenericEventCallback<?>) callback).getEvent(), Collections.singletonList(this));
+    }
+
+    /**
+     * Applies all damage effects active for one DetermineDamageEvent together, the caller has to check activation and direct activation
+     */
+    public static void applyAll(DetermineDamageEvent event, List<DDDDamageEffect> effects) {
+        for(DDDDamageEffect effect : effects) {
+            float currDmg = event.getDamage(effect.damageType);
+            //DDD throws on negative damage, negative amounts can only reduce the damage of a type to 0
+            event.setDamage(effect.damageType, Math.max(0, currDmg + effect.amount));
+        }
     }
 }
