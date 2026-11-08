@@ -5,7 +5,6 @@ import distinctsocketeddescriptions.effect.DDDApplyImmunityEffect;
 import distinctsocketeddescriptions.effect.DDDDamageEffect;
 import distinctsocketeddescriptions.effect.DDDRemoveImmunityEffect;
 import distinctsocketeddescriptions.effect.DDDResistanceEffect;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import org.apache.logging.log4j.LogManager;
@@ -16,7 +15,7 @@ import socketed.api.util.SocketedUtil;
         modid = DistinctSocketedDescriptions.MODID,
         name = DistinctSocketedDescriptions.MODNAME,
         version = DistinctSocketedDescriptions.VERSION,
-        dependencies = "required-after:socketed"
+        dependencies = "required-after:socketed;required-after:distinctdamagedescriptions"
 )
 public class DistinctSocketedDescriptions {
     public static final String MODID = "distinctsocketeddescriptions";
@@ -26,13 +25,11 @@ public class DistinctSocketedDescriptions {
 
     @Mod.EventHandler
     public static void init(FMLInitializationEvent event) {
-        if(Loader.isModLoaded("distinctdamagedescriptions")){
-            DefaultJsonAddons.initializeBuiltinEntries();
+        DefaultJsonAddons.initializeBuiltinEntries();
 
-            SocketedUtil.registerEffectType(DDDDamageEffect.TYPE_NAME, DDDDamageEffect.class, DistinctSocketedDescriptions.MODID);
-            SocketedUtil.registerEffectType(DDDResistanceEffect.TYPE_NAME, DDDResistanceEffect.class, DistinctSocketedDescriptions.MODID);
-            SocketedUtil.registerEffectType(DDDApplyImmunityEffect.TYPE_NAME, DDDApplyImmunityEffect.class, DistinctSocketedDescriptions.MODID);
-            SocketedUtil.registerEffectType(DDDRemoveImmunityEffect.TYPE_NAME, DDDRemoveImmunityEffect.class, DistinctSocketedDescriptions.MODID);
-        }
+        SocketedUtil.registerEffectType(DDDDamageEffect.TYPE_NAME, DDDDamageEffect.class, DistinctSocketedDescriptions.MODID);
+        SocketedUtil.registerEffectType(DDDResistanceEffect.TYPE_NAME, DDDResistanceEffect.class, DistinctSocketedDescriptions.MODID);
+        SocketedUtil.registerEffectType(DDDApplyImmunityEffect.TYPE_NAME, DDDApplyImmunityEffect.class, DistinctSocketedDescriptions.MODID);
+        SocketedUtil.registerEffectType(DDDRemoveImmunityEffect.TYPE_NAME, DDDRemoveImmunityEffect.class, DistinctSocketedDescriptions.MODID);
     }
 }
