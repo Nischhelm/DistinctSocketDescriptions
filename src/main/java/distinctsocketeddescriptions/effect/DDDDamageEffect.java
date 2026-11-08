@@ -49,6 +49,7 @@ public class DDDDamageEffect extends DDDAmountEffect {
         DetermineDamageEvent event = (DetermineDamageEvent) ((GenericEventCallback<?>) callback).getEvent();
         
         float currDmg = event.getDamage(damageType);
-        event.setDamage(damageType, currDmg + amount);
+        //DDD throws on negative damage, negative amounts can only reduce the damage of a type to 0
+        event.setDamage(damageType, Math.max(0, currDmg + amount));
     }
 }
