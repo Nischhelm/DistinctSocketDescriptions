@@ -28,6 +28,7 @@ import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Mod.EventBusSubscriber
@@ -112,10 +113,12 @@ public class DDDEventHandler {
         //This will usually be all body slots, also includes non-ItemArmor stacks like elytras or pumpkins
         if (!ModLoaded.isFirstAidLoaded())
             directActivationStacks.addAll(getDDDHitStacks(player));
-        else
-            FirstAidCompat.getAndClearAffectedBodySlots().forEach(
-                    slot -> directActivationStacks.add(player.getItemStackFromSlot(slot))
-            );
+        else {
+            //Only set while FirstAid is firing LivingDamage for a damage distribution round
+            Set<EntityEquipmentSlot> hitSlots = FirstAidCompat.getHitSlots(player);
+            if (hitSlots != null)
+                hitSlots.forEach(slot -> directActivationStacks.add(player.getItemStackFromSlot(slot)));
+        }
 
         for (ItemStack stack : directActivationStacks) {
             if(stack.isEmpty()) continue;

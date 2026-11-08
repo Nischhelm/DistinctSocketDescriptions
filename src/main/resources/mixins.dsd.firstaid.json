@@ -7,7 +7,6 @@
   "minVersion": "0.8",
   "mixins": [
     "DamageDistributionMixin",
-    "DirectDamageDistributionMixin",
     "EqualDamageDistributionMixin"
   ],
   "injectors": {
