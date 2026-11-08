@@ -13,6 +13,7 @@ public class DistinctSocketedDescriptionsPlugin implements IFMLLoadingPlugin {
     public DistinctSocketedDescriptionsPlugin() {
         MixinBootstrap.init();
 
+        FermiumRegistryAPI.enqueueMixin(true, "mixins.dsd.ddd.json");
         FermiumRegistryAPI.enqueueMixin(true, "mixins.dsd.firstaid.json", ModLoaded::isFirstAidLoaded);
     }
 

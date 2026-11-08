@@ -3,9 +3,11 @@ package distinctsocketeddescriptions.handler;
 import distinctsocketeddescriptions.compat.FirstAidCompat;
 import distinctsocketeddescriptions.compat.ModLoaded;
 import distinctsocketeddescriptions.effect.DDDEffect;
+import distinctsocketeddescriptions.mixin.ddd.CombatContextAccessor;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.fml.common.Mod;
@@ -106,15 +108,10 @@ public class DDDEventHandler {
         //Handle direct activation effects
         List<ItemStack> directActivationStacks = new ArrayList<>();
 
-        //Get all hit body slots from DDD combat tracker -> armor classification -> armor map
-        //This will usually be all armored body slots
+        //Get all hit body slots from the valid armor slots of the current DDD calculation
+        //This will usually be all body slots, also includes non-ItemArmor stacks like elytras or pumpkins
         if (!ModLoaded.isFirstAidLoaded())
-            DDDAPI.accessor.getDDDCombatTracker(player).flatMap(IDDDCombatTracker::getCurrentCalculation).ifPresent(dc -> {
-                //Can be null if DDD armor calcs are disabled or the calculation ended early in the hurt stage
-                if(dc.getArmorClassification() != null)
-                    dc.getArmorClassification().forEachArmorMap(
-                            (entityEquipmentSlot, armorMap) -> directActivationStacks.add(player.getItemStackFromSlot(entityEquipmentSlot)));
-            });
+            directActivationStacks.addAll(getDDDHitStacks(player));
         else
             FirstAidCompat.getAndClearAffectedBodySlots().forEach(
                     slot -> directActivationStacks.add(player.getItemStackFromSlot(slot))
@@ -127,6 +124,15 @@ public class DDDEventHandler {
                 filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.BODY))
                         .forEach(effect -> effect.performEffect(callback, true));
         }
+    }
+
+    private static List<ItemStack> getDDDHitStacks(EntityPlayer player) {
+        List<ItemStack> stacks = new ArrayList<>();
+        DDDAPI.accessor.getDDDCombatTracker(player).flatMap(IDDDCombatTracker::getCurrentCalculation).ifPresent(dc -> {
+            for (EntityEquipmentSlot slot : ((CombatContextAccessor) (Object) dc.getContext()).dsd$getValidArmorSlots())
+                stacks.add(player.getItemStackFromSlot(slot));
+        });
+        return stacks;
     }
 
     private static Stream<DDDEffect> filterEffects(List<GenericGemEffect> effects) {
