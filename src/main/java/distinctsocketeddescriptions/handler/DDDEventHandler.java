@@ -118,6 +118,9 @@ public class DDDEventHandler {
             Set<EntityEquipmentSlot> hitSlots = FirstAidCompat.getHitSlots(player);
             if (hitSlots != null)
                 hitSlots.forEach(slot -> directActivationStacks.add(player.getItemStackFromSlot(slot)));
+            else
+                //Damage that doesn't go through a FirstAid distribution (fake players, infinite damage, other mods posting LivingDamage directly)
+                directActivationStacks.addAll(getDDDHitStacks(player));
         }
 
         for (ItemStack stack : directActivationStacks) {
