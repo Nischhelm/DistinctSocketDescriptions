@@ -21,6 +21,11 @@ public class DDDRemoveImmunityEffect extends DDDEffect {
     }
 
     @Override
+    protected Activation getDefaultActivation() {
+        return Activation.ATTACKING;
+    }
+
+    @Override
     public String getTypeName() {
         return TYPE_NAME;
     }

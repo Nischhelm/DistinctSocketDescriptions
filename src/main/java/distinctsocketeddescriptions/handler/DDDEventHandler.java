@@ -35,7 +35,8 @@ import java.util.stream.Stream;
 public class DDDEventHandler {
     /**
      * Modify players DetermineDamageEvent, in order to add damages of certain types or modify the damage type map.
-     * Only the attackers gems activate here
+     * Attacking players gems activate here, as well as cached gems of attacked players.
+     * Direct activation of attacked players can't happen here, since this runs on LivingAttack, so it's too early to know which body parts are hit
      */
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onDetermineDamage(DetermineDamageEvent event) {
@@ -45,6 +46,7 @@ public class DDDEventHandler {
         if (ModLoaded.isFirstAidLoaded() && FirstAidCompat.isFollowUpRound(event.getDefender())) return;
 
         handleAttacking(event);
+        handleAttacked(event, false);
     }
 
     /**
@@ -55,7 +57,7 @@ public class DDDEventHandler {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onGatherDefenses(GatherDefensesEvent event) {
         handleAttacking(event);
-        handleAttacked(event);
+        handleAttacked(event, true);
     }
 
     private static void handleAttacking(DDDClassificationEvent event) {
@@ -77,7 +79,7 @@ public class DDDEventHandler {
         //Handle cached effects
         ICapabilityEffectsCache cachedEffects = player.getCapability(CapabilityEffectsCacheHandler.CAP_EFFECTS_CACHE, null);
         if (cachedEffects != null)
-            filterEffects(cachedEffects.getActiveEffects())
+            filterEffects(cachedEffects.getActiveEffects(), DDDEffect.Activation.ATTACKING)
                     .forEach(effect -> effect.performEffect(callback, false));
 
         //Handle direct activation effects
@@ -87,11 +89,11 @@ public class DDDEventHandler {
 
         ICapabilitySocketable sockets = weaponStack.getCapability(CapabilitySocketableHandler.CAP_SOCKETABLE, null);
         if (sockets != null)
-            filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.HAND))
+            filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.HAND), DDDEffect.Activation.ATTACKING)
                     .forEach(effect -> effect.performEffect(callback, true));
     }
 
-    private static void handleAttacked(DDDClassificationEvent event) {
+    private static void handleAttacked(DDDClassificationEvent event, boolean handleDirectActivation) {
         //Guaranteed serverside since the event is fired in LivingDamageEvent
         //Defender, Source and Player are @Nonnull, attacker can be null but is unused
 
@@ -105,8 +107,10 @@ public class DDDEventHandler {
         //Handle cached effects
         ICapabilityEffectsCache cachedEffects = player.getCapability(CapabilityEffectsCacheHandler.CAP_EFFECTS_CACHE, null);
         if (cachedEffects != null)
-            filterEffects(cachedEffects.getActiveEffects())
+            filterEffects(cachedEffects.getActiveEffects(), DDDEffect.Activation.ATTACKED)
                     .forEach(effect -> effect.performEffect(callback, false));
+
+        if (!handleDirectActivation) return;
 
         //Handle direct activation effects
         List<ItemStack> directActivationStacks = new ArrayList<>();
@@ -129,7 +133,7 @@ public class DDDEventHandler {
             if(stack.isEmpty()) continue;
             ICapabilitySocketable sockets = stack.getCapability(CapabilitySocketableHandler.CAP_SOCKETABLE, null);
             if (sockets != null)
-                filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.BODY))
+                filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.BODY), DDDEffect.Activation.ATTACKED)
                         .forEach(effect -> effect.performEffect(callback, true));
         }
     }
@@ -143,9 +147,10 @@ public class DDDEventHandler {
         return stacks;
     }
 
-    private static Stream<DDDEffect> filterEffects(List<GenericGemEffect> effects) {
+    private static Stream<DDDEffect> filterEffects(List<GenericGemEffect> effects, DDDEffect.Activation activation) {
         return effects.stream()
                 .filter(effect -> effect instanceof DDDEffect)
-                .map(DDDEffect.class::cast);
+                .map(DDDEffect.class::cast)
+                .filter(effect -> effect.getActivation() == activation);
     }
 }

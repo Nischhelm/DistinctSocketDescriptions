@@ -27,6 +27,11 @@ public class DDDApplyImmunityEffect extends DDDEffect {
     }
 
     @Override
+    protected Activation getDefaultActivation() {
+        return Activation.ATTACKED;
+    }
+
+    @Override
     public String getTypeName() {
         return TYPE_NAME;
     }

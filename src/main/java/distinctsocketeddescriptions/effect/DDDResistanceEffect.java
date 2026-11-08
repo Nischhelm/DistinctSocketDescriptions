@@ -28,6 +28,11 @@ public class DDDResistanceEffect extends DDDAmountEffect {
     }
 
     @Override
+    protected Activation getDefaultActivation() {
+        return Activation.ATTACKED;
+    }
+
+    @Override
     public String getTypeName() {
         return TYPE_NAME;
     }

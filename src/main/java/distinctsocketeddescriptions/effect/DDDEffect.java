@@ -5,6 +5,7 @@ import socketed.Socketed;
 import socketed.api.socket.gem.effect.GenericGemEffect;
 import socketed.api.socket.gem.effect.activatable.callback.IEffectCallback;
 import socketed.api.socket.gem.effect.slot.ISlotType;
+import socketed.api.socket.gem.effect.slot.SocketedSlotTypes;
 import yeelp.distinctdamagedescriptions.api.DDDDamageType;
 import yeelp.distinctdamagedescriptions.registries.DDDRegistries;
 
@@ -15,6 +16,8 @@ public abstract class DDDEffect extends GenericGemEffect {
     private final String damageTypeName;
     @SerializedName("Directly Activated")
     protected Boolean directlyActivated;
+    @SerializedName("Activation")
+    protected Activation activation;
 
     protected transient DDDDamageType damageType;
 
@@ -30,13 +33,42 @@ public abstract class DDDEffect extends GenericGemEffect {
         //Mainly need to copy dmg type object
         this.damageType = effect.damageType;
         this.directlyActivated = effect.directlyActivated;
+        this.activation = effect.activation;
     }
+
+    /**
+     * ATTACKING: applies when the player attacks, to the players damage or to the targets defenses
+     * ATTACKED: applies when the player gets attacked, to the attackers damage or to the players defenses
+     */
+    public enum Activation {
+        @SerializedName("ATTACKING") ATTACKING,
+        @SerializedName("ATTACKED") ATTACKED
+    }
+
+    /**
+     * Activation if set, otherwise depending on the slot type: hand slots are ATTACKING, body slots are ATTACKED.
+     * Any other slot type (for example ALL) uses the default of the effect
+     */
+    public Activation getActivation() {
+        if (this.activation != null) return this.activation;
+        if (this.slotType == SocketedSlotTypes.HAND || this.slotType == SocketedSlotTypes.MAINHAND || this.slotType == SocketedSlotTypes.OFFHAND)
+            return Activation.ATTACKING;
+        if (this.slotType == SocketedSlotTypes.BODY || this.slotType == SocketedSlotTypes.HEAD || this.slotType == SocketedSlotTypes.CHEST || this.slotType == SocketedSlotTypes.LEGS || this.slotType == SocketedSlotTypes.FEET)
+            return Activation.ATTACKED;
+        return this.getDefaultActivation();
+    }
+
+    /**
+     * Activation used if neither Activation is set nor the slot type implies one
+     */
+    protected abstract Activation getDefaultActivation();
 
     public abstract void performEffect(@Nullable IEffectCallback callback, boolean directlyActivated);
 
     /**
      * Damage Type: required, any registered DDD damage type (for example ddd_fire)
      * Directly Activated: optional, default false
+     * Activation: optional, ATTACKING or ATTACKED, default depends on slot type, see getActivation
      */
     public boolean validate() {
         if (super.validate()) {

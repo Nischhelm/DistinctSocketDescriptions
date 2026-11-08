@@ -28,6 +28,11 @@ public class DDDDamageEffect extends DDDAmountEffect {
     }
 
     @Override
+    protected Activation getDefaultActivation() {
+        return Activation.ATTACKING;
+    }
+
+    @Override
     public String getTypeName() {
         return TYPE_NAME;
     }
