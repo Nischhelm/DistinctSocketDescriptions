@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "distinctsocketeddescriptions.mixin.firstaid",
-  "refmap": "mixins.srpmixins.refmap.json",
+  "refmap": "mixins.distinctsocketeddescriptions.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8",
