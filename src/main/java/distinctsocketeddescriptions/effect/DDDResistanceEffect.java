@@ -21,7 +21,6 @@ public class DDDResistanceEffect extends DDDAmountEffect {
         //Instantiates Amount in DDDAmountEffect constructor
     }
 
-    //TODO
     @Override
     public String getTooltip(boolean b) {
         return I18n.format("dsd.tooltip.effect.resistance", this.amountRange.getTooltip(1), this.damageType.getDisplayName());
