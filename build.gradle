@@ -70,11 +70,12 @@ dependencies {
     implementation "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
 
-    implementation fg.deobf("libs:FermiumBooter:1.5.0-indev") // indev
-//    implementation fg.deobf("curse.maven:fermiumbooter-${fermiumbooter_version}")
+    implementation fg.deobf("curse.maven:fermiumbooter-${fermiumbooter_version}")
     implementation fg.deobf("curse.maven:distinctdamagedescriptions-${ddd_version}")
+    implementation fg.deobf("curse.maven:socketed-1319911:9500391")
+    implementation fg.deobf("curse.maven:socketedstandardexpansion-1790205:9500397")
+
     implementation fg.deobf("curse.maven:firstaid-${firstaid_version}")
-    implementation fg.deobf("libs:socketed:indev") // indev
 }
 
 mixin {
