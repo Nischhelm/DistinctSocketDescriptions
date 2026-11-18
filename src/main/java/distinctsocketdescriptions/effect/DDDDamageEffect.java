@@ -1,11 +1,19 @@
 package distinctsocketdescriptions.effect;
 
 import com.google.gson.annotations.SerializedName;
+import distinctsocketdescriptions.effect.activator.DDDActivator;
+import distinctsocketdescriptions.effect.activator.DDDAttackedActivator;
+import distinctsocketdescriptions.effect.callback.DDDDamageCallback;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import socketed.Socketed;
-import socketed.api.socket.gem.effect.activatable.callback.GenericEventCallback;
+import socketed.api.socket.gem.effect.activatable.activator.GenericActivator;
 import socketed.api.socket.gem.effect.activatable.callback.IEffectCallback;
+import socketed.api.socket.gem.effect.activatable.target.GenericTarget;
 import socketed.api.socket.gem.effect.slot.ISlotType;
 import socketed.api.socket.gem.util.RandomValueRange;
 import yeelp.distinctdamagedescriptions.api.DDDDamageType;
@@ -21,18 +29,13 @@ public class DDDDamageEffect extends DDDAmountEffect {
     @SerializedName("Operation")
     protected Operation operation;
 
-    public DDDDamageEffect(ISlotType slotType, String typeName, RandomValueRange amountRange, boolean directlyActivated) {
-        this(slotType, typeName, amountRange, directlyActivated, Operation.ADD);
-    }
-
-    public DDDDamageEffect(ISlotType slotType, String typeName, RandomValueRange amountRange, boolean directlyActivated, Operation operation) {
-        super(slotType, typeName, amountRange, directlyActivated);
+    public DDDDamageEffect(ISlotType slotType, GenericActivator activator, List<GenericTarget> targets, @Nullable String tooltipKey, String damageTypeName, RandomValueRange amountRange, Operation operation) {
+        super(slotType, activator, targets, tooltipKey, damageTypeName, amountRange);
         this.operation = operation;
     }
 
     public DDDDamageEffect(DDDDamageEffect effect) {
         super(effect);
-        //Instantiates amount in DDDAmountEffect constructor
         this.operation = effect.operation;
     }
 
@@ -54,8 +57,9 @@ public class DDDDamageEffect extends DDDAmountEffect {
         return this.operation;
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
-    public String getTooltip(boolean b) {
+    public String getTooltipString() {
         String typeName = this.damageType.getDisplayName();
         switch (this.operation) {
             case MULTIPLY_EXTRA: return I18n.format("dsd.tooltip.effect.damage.multiply_extra", this.amountRange.getTooltip(1), typeName);
@@ -72,8 +76,8 @@ public class DDDDamageEffect extends DDDAmountEffect {
     }
 
     @Override
-    protected Activation getDefaultActivation() {
-        return Activation.ATTACKING;
+    protected boolean affectsAttacker() {
+        return true;
     }
 
     @Override
@@ -81,6 +85,7 @@ public class DDDDamageEffect extends DDDAmountEffect {
         return TYPE_NAME;
     }
 
+    @Override
     public DDDDamageEffect instantiate() {
         return new DDDDamageEffect(this);
     }
@@ -95,21 +100,27 @@ public class DDDDamageEffect extends DDDAmountEffect {
             if (this.operation == null) this.operation = Operation.ADD;
             if ((this.operation == Operation.CONVERT || this.operation == Operation.MULTIPLY_TYPE) && this.amountRange.getMin() < 0)
                 Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, " + this.operation + " doesn't allow negative amounts");
-            else return true;
+            else {
+                if (this.activator instanceof DDDAttackedActivator && ((DDDActivator) this.activator).isDirectlyActivated())
+                    Socketed.LOGGER.warn("Possible invalid " + this.getTypeName() + " Effect, directly activated " + DDDAttackedActivator.TYPE_NAME + " damage effects never activate, since the damage is determined before the hit armor is known");
+                return true;
+            }
         }
         return false;
     }
 
+    /**
+     * Only collects this effect if effectTarget is the attacker, all collected effects get applied together via applyAll
+     */
     @Override
-    public void performEffect(@Nullable IEffectCallback callback, boolean directlyActivated) {
-        if(this.directlyActivated != directlyActivated) return;
-        if(!(callback instanceof GenericEventCallback)) return;
-        if(!(((GenericEventCallback<?>) callback).getEvent() instanceof DetermineDamageEvent)) return;
-        applyAll((DetermineDamageEvent) ((GenericEventCallback<?>) callback).getEvent(), Collections.singletonList(this));
+    public void performEffect(@Nullable IEffectCallback callback, EntityPlayer playerSource, EntityLivingBase effectTarget) {
+        if(!(callback instanceof DDDDamageCallback)) return;
+        DDDDamageCallback damageCallback = (DDDDamageCallback) callback;
+        if(damageCallback.getAttacker() == effectTarget) damageCallback.addDamageEffect(this);
     }
 
     /**
-     * Applies all damage effects active for one DetermineDamageEvent together, the caller has to check activation and direct activation
+     * Applies all damage effects active for one DetermineDamageEvent together
      * Order of operations is CONVERT, then ADD and MULTIPLY_EXTRA, then MULTIPLY_TYPE, so the result doesn't depend on the order of the effects
      */
     public static void applyAll(DetermineDamageEvent event, List<DDDDamageEffect> effects) {

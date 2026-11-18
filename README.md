@@ -10,17 +10,60 @@
 | `DDD Apply Immunity` | Damage Type | Adds immunity to a damage type |
 | `DDD Remove Immunity` | Damage Type | Removes immunity to a damage type |
 
-All effects also take the shared fields:
+All effects are Socketed activatable effects, so they also take:
 
 - `Equipment Slot Type`: required, the Socketed slot type of the effect
 - `Damage Type`: required, any registered DDD damage type, for example `ddd_fire`
+- `Activator`: required, `DDD Attacking` or `DDD Attacked`, see Activators
+- `Targets`: required, `Self` or `Other` depending on Activator and effect, see Targets
+- `Tooltip Key`: optional, replaces the generated tooltip
+
+## Activators
+
+| Activator Type | Description |
+|---|---|
+| `DDD Attacking` | Activates when the player attacks something |
+| `DDD Attacked` | Activates when the player gets damaged, also without a living attacker, for example by lava |
+
+Both activate while DDD determines the damage and gathers the defenses of a hit, and take:
+
 - `Directly Activated`: optional, default `false`
   - `false`: the effect is active as long as the item is equipped in a valid slot
   - `true`: the effect only activates from the item that is used: the main hand weapon when attacking, or the hit armor pieces when attacked
-- `Activation`: optional, `ATTACKING` or `ATTACKED`
-  - `ATTACKING`: applies when the player attacks
-  - `ATTACKED`: applies when the player gets attacked
-  - If not set, it depends on the slot type: hand slots (`HAND`, `MAINHAND`, `OFFHAND`) are `ATTACKING`, body slots (`BODY`, `HEAD`, `CHEST`, `LEGS`, `FEET`) are `ATTACKED`. Any other slot type (for example `ALL`) uses the effects default: `ATTACKING` for DDD Damage and DDD Remove Immunity, `ATTACKED` for DDD Resistance and DDD Apply Immunity
+- `Condition`: optional, any Socketed condition, for example `Chance`
+
+Like Socketed's attack activators, the attacker is the immediate source for melee attacks and the true source for ranged attacks, so attacks of pets don't activate the effects of their owner.
+
+DDD effects only work with these activators, and these activators only activate DDD effects.
+
+## Targets
+
+Damage effects modify the attacker's damage, the other effects modify the defender's resistances and immunities. The target has to be the entity that gets modified:
+
+| Effect | Activator | Target | What it does |
+|---|---|---|---|
+| `DDD Damage` | `DDD Attacking` | `Self` | Modifies the player's damage, for example +5 fire damage or turn 30% of the damage to fire |
+| `DDD Damage` | `DDD Attacked` | `Other` | Modifies the attacking mob's damage, for example -5 fire damage. Recommended is using DDD Resistance for that. Can't be directly activated |
+| `DDD Resistance` | `DDD Attacked` | `Self` | Modifies the player's resistances, for example +50% fire resistance |
+| `DDD Resistance` | `DDD Attacking` | `Other` | Modifies the target's resistances, for example -50% fire resistance |
+| `DDD Apply/Remove Immunity` | `DDD Attacked` | `Self` | Adds/removes immunities of the player |
+| `DDD Apply/Remove Immunity` | `DDD Attacking` | `Other` | Adds/removes immunities of the target, for example remove a mob's fire immunity |
+
+Any other target never affects anything, which gets logged as a warning.
+
+Example:
+
+```json
+{
+  "Effect Type": "DDD Damage",
+  "Equipment Slot Type": "HAND",
+  "Damage Type": "ddd_fire",
+  "Amount": "[3 : 5]",
+  "Operation": "ADD",
+  "Activator": {"Activator Type": "DDD Attacking", "Directly Activated": true, "Condition": {"Condition Type": "Chance", "Chance": 0.5}},
+  "Targets": [{"Target Type": "Self"}]
+}
+```
 
 `DDD Damage` additionally takes:
 
@@ -40,27 +83,6 @@ All damage effects active in one hit (from the attacker and the defender) get ap
 3. `MULTIPLY_TYPE`: multipliers of the same type add up, two x1.5 make x2
 
 Damage of a type can't go below 0. `CONVERT` and `MULTIPLY_TYPE` don't allow negative amounts.
-
-Directly activated effects only ever run from the hand when attacking and from the body when attacked, so their Activation should match their slot type.
-
-## What each effect does depending on Activation
-
-It doesn't always make sense to use every effect with every activation, even though it is possible.
-
-#### DDD Resistance
-
-- `ATTACKED`: modifies the defending players resistances, so you can for example add +50% fire damage resistance
-- `ATTACKING`: modifies the attacked targets resistances, so you can for example reduce the mobs fire resistance by -50%
-
-#### DDD Damage
-
-- `ATTACKING`: modifies the attacking players damage, so you can for example add +5 fire damage or turn 30% of the damage to fire
-- `ATTACKED`: modifies the attacking mobs damage, so you could for example reduce their fire damage by -5 or multiply it by 0.5, which is a weird approach. Recommended is using DDD Resistance for that. This only works for non directly activated effects
-
-#### DDD Apply Immunity / DDD Remove Immunity
-
-- `ATTACKED`: adds/removes immunities of the defending player
-- `ATTACKING`: adds/removes immunities of the attacked target, so you can for example remove a mobs fire immunity
 
 ## FirstAid
 

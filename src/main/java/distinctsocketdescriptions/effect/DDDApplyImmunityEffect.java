@@ -1,34 +1,35 @@
 package distinctsocketdescriptions.effect;
 
 import net.minecraft.client.resources.I18n;
-import socketed.api.socket.gem.effect.activatable.callback.GenericEventCallback;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import socketed.api.socket.gem.effect.activatable.activator.GenericActivator;
 import socketed.api.socket.gem.effect.activatable.callback.IEffectCallback;
+import socketed.api.socket.gem.effect.activatable.target.GenericTarget;
 import socketed.api.socket.gem.effect.slot.ISlotType;
 import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
-//Same as DDDResistanceEffect just adding Immunities instead of Resistance on GatherDefensesEvent of player
 public class DDDApplyImmunityEffect extends DDDEffect {
     public static final String TYPE_NAME = "DDD Apply Immunity";
 
-    public DDDApplyImmunityEffect(ISlotType slotType, String typeName, boolean directlyActivated) {
-        super(slotType, typeName, directlyActivated);
+    public DDDApplyImmunityEffect(ISlotType slotType, GenericActivator activator, List<GenericTarget> targets, @Nullable String tooltipKey, String damageTypeName) {
+        super(slotType, activator, targets, tooltipKey, damageTypeName);
     }
 
-    public DDDApplyImmunityEffect(DDDApplyImmunityEffect effect) {
-        super(effect);
-        //Instantiates amount in DDDAmountEffect constructor
-    }
-
+    @SideOnly(Side.CLIENT)
     @Override
-    public String getTooltip(boolean b) {
+    public String getTooltipString() {
         return I18n.format("dsd.tooltip.effect.immunity", this.damageType.getDisplayName());
     }
 
     @Override
-    protected Activation getDefaultActivation() {
-        return Activation.ATTACKED;
+    protected boolean affectsAttacker() {
+        return false;
     }
 
     @Override
@@ -36,18 +37,10 @@ public class DDDApplyImmunityEffect extends DDDEffect {
         return TYPE_NAME;
     }
 
-    public DDDApplyImmunityEffect instantiate() {
-        return new DDDApplyImmunityEffect(this);
-    }
-
     @Override
-    public void performEffect(@Nullable IEffectCallback callback, boolean directlyActivated) {
-        if(this.directlyActivated != directlyActivated) return;
-        if(!(callback instanceof GenericEventCallback)) return;
-        if(!(((GenericEventCallback<?>) callback).getEvent() instanceof GatherDefensesEvent)) return;
-        GatherDefensesEvent event = (GatherDefensesEvent) ((GenericEventCallback<?>) callback).getEvent();
-
-        if(!event.hasImmunity(damageType))
-            event.addImmunity(damageType);
+    public void performEffect(@Nullable IEffectCallback callback, EntityPlayer playerSource, EntityLivingBase effectTarget) {
+        GatherDefensesEvent event = getDefensesEvent(callback, effectTarget);
+        if(event == null) return;
+        if(!event.hasImmunity(this.damageType)) event.addImmunity(this.damageType);
     }
 }

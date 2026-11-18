@@ -4,8 +4,12 @@ import distinctsocketdescriptions.compat.FirstAidCompat;
 import distinctsocketdescriptions.compat.ModLoaded;
 import distinctsocketdescriptions.effect.DDDDamageEffect;
 import distinctsocketdescriptions.effect.DDDEffect;
+import distinctsocketdescriptions.effect.activator.DDDActivator;
+import distinctsocketdescriptions.effect.activator.DDDAttackedActivator;
+import distinctsocketdescriptions.effect.activator.DDDAttackingActivator;
+import distinctsocketdescriptions.effect.callback.DDDDamageCallback;
+import distinctsocketdescriptions.effect.callback.DDDEventCallback;
 import distinctsocketdescriptions.mixin.ddd.CombatContextAccessor;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -19,42 +23,46 @@ import socketed.api.common.capabilities.effectscache.ICapabilityEffectsCache;
 import socketed.api.common.capabilities.socketable.CapabilitySocketableHandler;
 import socketed.api.common.capabilities.socketable.ICapabilitySocketable;
 import socketed.api.socket.gem.effect.GenericGemEffect;
-import socketed.api.socket.gem.effect.activatable.callback.GenericEventCallback;
+import socketed.api.socket.gem.effect.activatable.ActivatableGemEffect;
+import socketed.api.socket.gem.effect.activatable.callback.IEffectCallback;
 import socketed.api.socket.gem.effect.slot.SocketedSlotTypes;
+import socketed.api.util.SocketedUtil;
 import yeelp.distinctdamagedescriptions.api.DDDAPI;
 import yeelp.distinctdamagedescriptions.capability.IDDDCombatTracker;
 import yeelp.distinctdamagedescriptions.event.classification.DDDClassificationEvent;
 import yeelp.distinctdamagedescriptions.event.classification.DetermineDamageEvent;
 import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Mod.EventBusSubscriber
 public class DDDEventHandler {
+    private static final Predicate<GenericGemEffect> IS_DAMAGE_EFFECT = effect -> effect instanceof DDDDamageEffect;
+    private static final Predicate<GenericGemEffect> IS_DEFENSE_EFFECT = effect -> effect instanceof DDDEffect && !(effect instanceof DDDDamageEffect);
+
     /**
-     * Modify players DetermineDamageEvent, in order to add damages of certain types or modify the damage type map.
+     * Modify the DetermineDamageEvent, in order to add damages of certain types or modify the damage type map.
      * Attacking players gems activate here, as well as cached gems of attacked players.
      * Direct activation of attacked players can't happen here, since this runs on LivingAttack, so it's too early to know which body parts are hit
      */
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onDetermineDamage(DetermineDamageEvent event) {
-        //DetermineDamage doesn't guarantee that there is a nonnull attacker
-        if (event.getTrueAttacker() == null && event.getImmediateAttacker() == null) return;
+        EntityLivingBase attacker = getAttacker(event);
+        //Damage effects only modify the damage of an attacker
+        if (attacker == null) return;
         //Prevent adding flat damage again when DDD reclassifies the remaining damage of a FirstAid distribution
         if (ModLoaded.isFirstAidLoaded() && FirstAidCompat.isFollowUpRound(event.getDefender())) return;
 
         //Damage effects are collected first and applied together, so their operations always run in the same order
-        List<DDDDamageEffect> damageEffects = new ArrayList<>();
-        EffectPerformer collector = (effect, directlyActivated) -> {
-            if (effect instanceof DDDDamageEffect && effect.isDirectlyActivated() == directlyActivated)
-                damageEffects.add((DDDDamageEffect) effect);
-        };
-        handleAttacking(event, collector);
-        handleAttacked(event, false, collector);
-        if (!damageEffects.isEmpty()) DDDDamageEffect.applyAll(event, damageEffects);
+        DDDDamageCallback callback = new DDDDamageCallback(event, attacker);
+        handleAttacking(callback, attacker, event.getDefender(), IS_DAMAGE_EFFECT);
+        handleAttacked(callback, attacker, event.getDefender(), false, IS_DAMAGE_EFFECT);
+        if (!callback.getDamageEffects().isEmpty()) DDDDamageEffect.applyAll(event, callback.getDamageEffects());
     }
 
     /**
@@ -64,36 +72,35 @@ public class DDDEventHandler {
      */
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onGatherDefenses(GatherDefensesEvent event) {
-        GenericEventCallback<GatherDefensesEvent> callback = new GenericEventCallback<>(event);
-        EffectPerformer performer = (effect, directlyActivated) -> effect.performEffect(callback, directlyActivated);
-        handleAttacking(event, performer);
-        handleAttacked(event, true, performer);
+        EntityLivingBase attacker = getAttacker(event);
+        DDDEventCallback<GatherDefensesEvent> callback = new DDDEventCallback<>(event, attacker);
+        handleAttacking(callback, attacker, event.getDefender(), IS_DEFENSE_EFFECT);
+        handleAttacked(callback, attacker, event.getDefender(), true, IS_DEFENSE_EFFECT);
     }
 
-    @FunctionalInterface
-    private interface EffectPerformer {
-        void perform(DDDEffect effect, boolean directlyActivated);
-    }
-
-    private static void handleAttacking(DDDClassificationEvent event, EffectPerformer performer) {
-        //Guaranteed serverside, since both DDD Events run on LivingDamageEvent
-        //Source, attacker, defender are guaranteed @Nonnull
-
+    /**
+     * Same as Socketed's attack activators: the immediate source for melee, the true source for ranged attacks.
+     * This prevents ranged pet attacks from triggering attacker effects such as lycanites
+     * @return the living attacker, null if there is none or if it is the defender itself
+     */
+    @Nullable
+    private static EntityLivingBase getAttacker(DDDClassificationEvent event) {
+        //Guaranteed serverside, source and defender are guaranteed @Nonnull
         DamageSource source = event.getSource();
+        EntityLivingBase attacker = null;
+        if (SocketedUtil.isDamageSourceMelee(source)) attacker = (EntityLivingBase) source.getImmediateSource();
+        else if (SocketedUtil.isDamageSourceRanged(source)) attacker = (EntityLivingBase) source.getTrueSource();
+        return attacker == event.getDefender() ? null : attacker;
+    }
 
-        //Prioritize checking the direct attacker, prevent ranged pet attacks from triggering attacker effects such as lycanites
-        //This also auto checks whether the attacker is null
-
-        Entity attacker = source.getImmediateSource();
-        if (!(attacker instanceof EntityPlayer)) attacker = source.getTrueSource();
+    private static void handleAttacking(IEffectCallback callback, @Nullable EntityLivingBase attacker, EntityLivingBase defender, Predicate<GenericGemEffect> effectFilter) {
         if (!(attacker instanceof EntityPlayer)) return;
         EntityPlayer player = (EntityPlayer) attacker;
 
         //Handle cached effects
         ICapabilityEffectsCache cachedEffects = player.getCapability(CapabilityEffectsCacheHandler.CAP_EFFECTS_CACHE, null);
         if (cachedEffects != null)
-            filterEffects(cachedEffects.getActiveEffects(), DDDEffect.Activation.ATTACKING)
-                    .forEach(effect -> performer.perform(effect, false));
+            activate(cachedEffects.getEffectsForActivator(DDDAttackingActivator.class).stream(), effectFilter, callback, player, defender, false);
 
         //Handle direct activation effects
         //RLCombat swaps offhand into mainhand before posting LivingAttack for offhand attacks, which is still the case during this event
@@ -102,24 +109,19 @@ public class DDDEventHandler {
 
         ICapabilitySocketable sockets = weaponStack.getCapability(CapabilitySocketableHandler.CAP_SOCKETABLE, null);
         if (sockets != null)
-            filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.HAND), DDDEffect.Activation.ATTACKING)
-                    .forEach(effect -> performer.perform(effect, true));
+            activate(SocketedUtil.filterForActivator(sockets.getAllActiveEffects(SocketedSlotTypes.HAND), DDDAttackingActivator.class), effectFilter, callback, player, defender, true);
     }
 
-    private static void handleAttacked(DDDClassificationEvent event, boolean handleDirectActivation, EffectPerformer performer) {
-        //Guaranteed serverside since the event is fired in LivingDamageEvent
-        //Defender, Source and Player are @Nonnull, attacker can be null but is unused
-
-        EntityLivingBase target = event.getDefender();
-
-        if (!(target instanceof EntityPlayer)) return;
-        EntityPlayer player = (EntityPlayer) target;
+    private static void handleAttacked(IEffectCallback callback, @Nullable EntityLivingBase attacker, EntityLivingBase defender, boolean handleDirectActivation, Predicate<GenericGemEffect> effectFilter) {
+        if (!(defender instanceof EntityPlayer)) return;
+        EntityPlayer player = (EntityPlayer) defender;
+        //Damage without a living attacker (for example lava) still activates defensive effects, the player is the other entity then
+        EntityLivingBase other = attacker != null ? attacker : player;
 
         //Handle cached effects
         ICapabilityEffectsCache cachedEffects = player.getCapability(CapabilityEffectsCacheHandler.CAP_EFFECTS_CACHE, null);
         if (cachedEffects != null)
-            filterEffects(cachedEffects.getActiveEffects(), DDDEffect.Activation.ATTACKED)
-                    .forEach(effect -> performer.perform(effect, false));
+            activate(cachedEffects.getEffectsForActivator(DDDAttackedActivator.class).stream(), effectFilter, callback, player, other, false);
 
         if (!handleDirectActivation) return;
 
@@ -141,12 +143,15 @@ public class DDDEventHandler {
         }
 
         for (ItemStack stack : directActivationStacks) {
-            if(stack.isEmpty()) continue;
+            if (stack.isEmpty()) continue;
             ICapabilitySocketable sockets = stack.getCapability(CapabilitySocketableHandler.CAP_SOCKETABLE, null);
             if (sockets != null)
-                filterEffects(sockets.getAllActiveEffects(SocketedSlotTypes.BODY), DDDEffect.Activation.ATTACKED)
-                        .forEach(effect -> performer.perform(effect, true));
+                activate(SocketedUtil.filterForActivator(sockets.getAllActiveEffects(SocketedSlotTypes.BODY), DDDAttackedActivator.class), effectFilter, callback, player, other, true);
         }
+    }
+
+    private static void activate(Stream<ActivatableGemEffect> effects, Predicate<GenericGemEffect> effectFilter, IEffectCallback callback, EntityPlayer player, EntityLivingBase other, boolean directlyActivated) {
+        effects.filter(effectFilter).forEach(effect -> ((DDDActivator) effect.getActivator()).attemptActivation(effect, callback, player, other, directlyActivated));
     }
 
     private static List<ItemStack> getDDDHitStacks(EntityPlayer player) {
@@ -158,10 +163,4 @@ public class DDDEventHandler {
         return stacks;
     }
 
-    private static Stream<DDDEffect> filterEffects(List<GenericGemEffect> effects, DDDEffect.Activation activation) {
-        return effects.stream()
-                .filter(effect -> effect instanceof DDDEffect)
-                .map(DDDEffect.class::cast)
-                .filter(effect -> effect.getActivation() == activation);
-    }
 }

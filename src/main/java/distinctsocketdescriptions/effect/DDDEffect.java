@@ -1,91 +1,89 @@
 package distinctsocketdescriptions.effect;
 
 import com.google.gson.annotations.SerializedName;
+import distinctsocketdescriptions.effect.activator.DDDActivator;
+import distinctsocketdescriptions.effect.activator.DDDAttackedActivator;
+import distinctsocketdescriptions.effect.activator.DDDAttackingActivator;
+import distinctsocketdescriptions.effect.callback.DDDEventCallback;
+import net.minecraft.entity.EntityLivingBase;
 import socketed.Socketed;
-import socketed.api.socket.gem.effect.GenericGemEffect;
+import socketed.api.socket.gem.effect.activatable.ActivatableGemEffect;
+import socketed.api.socket.gem.effect.activatable.activator.GenericActivator;
 import socketed.api.socket.gem.effect.activatable.callback.IEffectCallback;
+import socketed.api.socket.gem.effect.activatable.target.GenericTarget;
 import socketed.api.socket.gem.effect.slot.ISlotType;
-import socketed.api.socket.gem.effect.slot.SocketedSlotTypes;
+import socketed.common.socket.gem.effect.activatable.target.OtherTarget;
+import socketed.common.socket.gem.effect.activatable.target.SelfTarget;
 import yeelp.distinctdamagedescriptions.api.DDDDamageType;
+import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent;
 import yeelp.distinctdamagedescriptions.registries.DDDRegistries;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
-public abstract class DDDEffect extends GenericGemEffect {
+public abstract class DDDEffect extends ActivatableGemEffect {
     @SerializedName("Damage Type")
     private final String damageTypeName;
-    @SerializedName("Directly Activated")
-    protected Boolean directlyActivated;
-    @SerializedName("Activation")
-    protected Activation activation;
 
     protected transient DDDDamageType damageType;
 
-    public DDDEffect(ISlotType slotType, String damageTypeName, boolean directlyActivated) {
-        super(slotType);
+    public DDDEffect(ISlotType slotType, GenericActivator activator, List<GenericTarget> targets, @Nullable String tooltipKey, String damageTypeName) {
+        super(slotType, activator, targets, tooltipKey);
         this.damageTypeName = damageTypeName;
-        this.directlyActivated = directlyActivated;
     }
 
     public DDDEffect(DDDEffect effect) {
-        super(effect.slotType);
+        super(effect.slotType, effect.activator, effect.targets, effect.tooltipKey);
         this.damageTypeName = effect.damageTypeName;
-        //Mainly need to copy dmg type object
         this.damageType = effect.damageType;
-        this.directlyActivated = effect.directlyActivated;
-        this.activation = effect.activation;
     }
 
     /**
-     * ATTACKING: applies when the player attacks, to the players damage or to the targets defenses
-     * ATTACKED: applies when the player gets attacked, to the attackers damage or to the players defenses
+     * @return true if this effect modifies the damage of the attacker, false if it modifies the defenses of the defender
      */
-    public enum Activation {
-        @SerializedName("ATTACKING") ATTACKING,
-        @SerializedName("ATTACKED") ATTACKED
+    protected abstract boolean affectsAttacker();
+
+    /**
+     * @return the GatherDefensesEvent of the callback if effectTarget is its defender, otherwise null
+     */
+    @Nullable
+    protected static GatherDefensesEvent getDefensesEvent(@Nullable IEffectCallback callback, EntityLivingBase effectTarget) {
+        if(!(callback instanceof DDDEventCallback)) return null;
+        if(!(((DDDEventCallback<?>) callback).getEvent() instanceof GatherDefensesEvent)) return null;
+        GatherDefensesEvent event = (GatherDefensesEvent) ((DDDEventCallback<?>) callback).getEvent();
+        return event.getDefender() == effectTarget ? event : null;
     }
 
     /**
-     * Activation if set, otherwise depending on the slot type: hand slots are ATTACKING, body slots are ATTACKED.
-     * Any other slot type (for example ALL) uses the default of the effect
+     * Activator: Required, DDD Attacking or DDD Attacked
+     * Damage Type: Required, any registered DDD damage type (for example ddd_fire)
      */
-    public Activation getActivation() {
-        if (this.activation != null) return this.activation;
-        if (this.slotType == SocketedSlotTypes.HAND || this.slotType == SocketedSlotTypes.MAINHAND || this.slotType == SocketedSlotTypes.OFFHAND)
-            return Activation.ATTACKING;
-        if (this.slotType == SocketedSlotTypes.BODY || this.slotType == SocketedSlotTypes.HEAD || this.slotType == SocketedSlotTypes.CHEST || this.slotType == SocketedSlotTypes.LEGS || this.slotType == SocketedSlotTypes.FEET)
-            return Activation.ATTACKED;
-        return this.getDefaultActivation();
-    }
-
-    public boolean isDirectlyActivated() {
-        return this.directlyActivated;
-    }
-
-    /**
-     * Activation used if neither Activation is set nor the slot type implies one
-     */
-    protected abstract Activation getDefaultActivation();
-
-    public abstract void performEffect(@Nullable IEffectCallback callback, boolean directlyActivated);
-
-    /**
-     * Damage Type: required, any registered DDD damage type (for example ddd_fire)
-     * Directly Activated: optional, default false
-     * Activation: optional, ATTACKING or ATTACKED, default depends on slot type, see getActivation
-     */
+    @Override
     public boolean validate() {
-        if (super.validate()) {
-            if(this.directlyActivated == null) this.directlyActivated = false;
-
-            if (this.damageTypeName == null || this.damageTypeName.isEmpty()) Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, damage type null or empty");
-            else{
+        if(super.validate()) {
+            if(!(this.activator instanceof DDDActivator)) Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, activator must be " + DDDAttackingActivator.TYPE_NAME + " or " + DDDAttackedActivator.TYPE_NAME);
+            else if(this.damageTypeName == null || this.damageTypeName.isEmpty()) Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, damage type null or empty");
+            else {
                 this.damageType = DDDRegistries.damageTypes.get(this.damageTypeName);
-                if(this.damageType == null) Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, damage type, " +this.damageTypeName+" does not exist");
-                else return true;
+                if(this.damageType == null) Socketed.LOGGER.warn("Invalid " + this.getTypeName() + " Effect, damage type " + this.damageTypeName + " does not exist");
+                else {
+                    this.warnUnaffectedTargets();
+                    return true;
+                }
             }
         }
-
         return false;
+    }
+
+    /**
+     * Only the attacker or the defender of the damage event can be affected, depending on activator and effect
+     */
+    private void warnUnaffectedTargets() {
+        boolean affectsSelf = (this.activator instanceof DDDAttackingActivator) == this.affectsAttacker();
+        String expected = affectsSelf ? SelfTarget.TYPE_NAME : OtherTarget.TYPE_NAME;
+        for(GenericTarget target : this.targets) {
+            boolean valid = affectsSelf ? target instanceof SelfTarget : target instanceof OtherTarget;
+            if(!valid) Socketed.LOGGER.warn("Possible invalid " + this.getTypeName() + " Effect, " + target.getTypeName() + " target never gets affected with the " + this.activator.getTypeName() + " activator, use " + expected);
+        }
     }
 }
