@@ -1,4 +1,4 @@
-package distinctsocketeddescriptions.mixin.ddd;
+package distinctsocketdescriptions.mixin.ddd;
 
 import net.minecraft.inventory.EntityEquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;

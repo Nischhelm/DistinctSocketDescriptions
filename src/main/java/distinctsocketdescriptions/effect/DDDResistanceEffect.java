@@ -1,4 +1,4 @@
-package distinctsocketeddescriptions.effect;
+package distinctsocketdescriptions.effect;
 
 import net.minecraft.client.resources.I18n;
 import socketed.api.socket.gem.effect.activatable.callback.GenericEventCallback;

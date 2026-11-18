@@ -1,4 +1,4 @@
-package distinctsocketeddescriptions.compat;
+package distinctsocketdescriptions.compat;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.inventory.EntityEquipmentSlot;

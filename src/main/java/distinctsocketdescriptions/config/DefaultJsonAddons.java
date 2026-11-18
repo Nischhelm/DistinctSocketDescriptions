@@ -1,7 +1,7 @@
-package distinctsocketeddescriptions.config;
+package distinctsocketdescriptions.config;
 
-import distinctsocketeddescriptions.effect.DDDDamageEffect;
-import distinctsocketeddescriptions.effect.DDDResistanceEffect;
+import distinctsocketdescriptions.effect.DDDDamageEffect;
+import distinctsocketdescriptions.effect.DDDResistanceEffect;
 import net.minecraft.util.text.TextFormatting;
 import socketed.api.socket.gem.GemType;
 import socketed.api.socket.gem.effect.slot.SocketedSlotTypes;

@@ -1,6 +1,6 @@
-package distinctsocketeddescriptions;
+package distinctsocketdescriptions;
 
-import distinctsocketeddescriptions.compat.ModLoaded;
+import distinctsocketdescriptions.compat.ModLoaded;
 import fermiumbooter.FermiumRegistryAPI;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
@@ -9,9 +9,9 @@ import org.spongepowered.asm.launch.MixinBootstrap;
 import java.util.Map;
 
 @IFMLLoadingPlugin.MCVersion("1.12.2")
-public class DistinctSocketedDescriptionsPlugin implements IFMLLoadingPlugin {
+public class DistinctSocketDescriptionsPlugin implements IFMLLoadingPlugin {
 
-    public DistinctSocketedDescriptionsPlugin() {
+    public DistinctSocketDescriptionsPlugin() {
         MixinBootstrap.init();
 
         //Gated so a missing DDD shows the missing dependency screen instead of failing the mixin

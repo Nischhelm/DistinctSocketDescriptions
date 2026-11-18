@@ -1,4 +1,4 @@
-package distinctsocketeddescriptions.compat;
+package distinctsocketdescriptions.compat;
 
 import net.minecraftforge.fml.common.Loader;
 

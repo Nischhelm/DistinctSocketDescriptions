@@ -1,10 +1,10 @@
-package distinctsocketeddescriptions.mixin.firstaid;
+package distinctsocketdescriptions.mixin.firstaid;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import distinctsocketeddescriptions.compat.FirstAidCompat;
+import distinctsocketdescriptions.compat.FirstAidCompat;
 import ichttt.mods.firstaid.api.IDamageDistribution;
 import ichttt.mods.firstaid.api.damagesystem.AbstractPlayerDamageModel;
 import ichttt.mods.firstaid.common.damagesystem.distribution.DamageDistribution;

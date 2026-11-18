@@ -1,4 +1,4 @@
-package distinctsocketeddescriptions.effect;
+package distinctsocketdescriptions.effect;
 
 import net.minecraft.client.resources.I18n;
 import socketed.api.socket.gem.effect.activatable.callback.GenericEventCallback;
@@ -8,26 +8,36 @@ import yeelp.distinctdamagedescriptions.event.classification.GatherDefensesEvent
 
 import javax.annotation.Nullable;
 
-public class DDDRemoveImmunityEffect extends DDDEffect {
-    public static final String TYPE_NAME = "DDD Remove Immunity";
+//Same as DDDResistanceEffect just adding Immunities instead of Resistance on GatherDefensesEvent of player
+public class DDDApplyImmunityEffect extends DDDEffect {
+    public static final String TYPE_NAME = "DDD Apply Immunity";
 
-    public DDDRemoveImmunityEffect(ISlotType slotType, String typeName, boolean directlyActivated) {
+    public DDDApplyImmunityEffect(ISlotType slotType, String typeName, boolean directlyActivated) {
         super(slotType, typeName, directlyActivated);
+    }
+
+    public DDDApplyImmunityEffect(DDDApplyImmunityEffect effect) {
+        super(effect);
+        //Instantiates amount in DDDAmountEffect constructor
     }
 
     @Override
     public String getTooltip(boolean b) {
-        return I18n.format("dsd.tooltip.effect.removeimmunity", this.damageType.getDisplayName());
+        return I18n.format("dsd.tooltip.effect.immunity", this.damageType.getDisplayName());
     }
 
     @Override
     protected Activation getDefaultActivation() {
-        return Activation.ATTACKING;
+        return Activation.ATTACKED;
     }
 
     @Override
     public String getTypeName() {
         return TYPE_NAME;
+    }
+
+    public DDDApplyImmunityEffect instantiate() {
+        return new DDDApplyImmunityEffect(this);
     }
 
     @Override
@@ -36,8 +46,8 @@ public class DDDRemoveImmunityEffect extends DDDEffect {
         if(!(callback instanceof GenericEventCallback)) return;
         if(!(((GenericEventCallback<?>) callback).getEvent() instanceof GatherDefensesEvent)) return;
         GatherDefensesEvent event = (GatherDefensesEvent) ((GenericEventCallback<?>) callback).getEvent();
-        
-        if(event.hasImmunity(this.damageType))
-            event.removeImmunity(this.damageType);
+
+        if(!event.hasImmunity(damageType))
+            event.addImmunity(damageType);
     }
 }

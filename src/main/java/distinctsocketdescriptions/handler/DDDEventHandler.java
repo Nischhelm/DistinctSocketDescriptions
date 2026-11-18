@@ -1,10 +1,10 @@
-package distinctsocketeddescriptions.handler;
+package distinctsocketdescriptions.handler;
 
-import distinctsocketeddescriptions.compat.FirstAidCompat;
-import distinctsocketeddescriptions.compat.ModLoaded;
-import distinctsocketeddescriptions.effect.DDDDamageEffect;
-import distinctsocketeddescriptions.effect.DDDEffect;
-import distinctsocketeddescriptions.mixin.ddd.CombatContextAccessor;
+import distinctsocketdescriptions.compat.FirstAidCompat;
+import distinctsocketdescriptions.compat.ModLoaded;
+import distinctsocketdescriptions.effect.DDDDamageEffect;
+import distinctsocketdescriptions.effect.DDDEffect;
+import distinctsocketdescriptions.mixin.ddd.CombatContextAccessor;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;

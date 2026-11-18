@@ -1,8 +1,8 @@
-package distinctsocketeddescriptions.mixin.firstaid;
+package distinctsocketdescriptions.mixin.firstaid;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import distinctsocketeddescriptions.compat.FirstAidCompat;
+import distinctsocketdescriptions.compat.FirstAidCompat;
 import ichttt.mods.firstaid.common.damagesystem.distribution.EqualDamageDistribution;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.inventory.EntityEquipmentSlot;

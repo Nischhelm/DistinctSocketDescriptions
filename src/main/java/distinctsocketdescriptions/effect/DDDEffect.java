@@ -1,4 +1,4 @@
-package distinctsocketeddescriptions.effect;
+package distinctsocketdescriptions.effect;
 
 import com.google.gson.annotations.SerializedName;
 import socketed.Socketed;
