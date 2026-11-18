@@ -1,12 +1,12 @@
 package distinctsocketdescriptions.compat;
 
-import net.minecraftforge.fml.common.Loader;
+import fermiumbooter.util.FermiumJarScanner;
 
 public class ModLoaded {
     private static Boolean isFirstAidLoaded = null;
 
     public static boolean isFirstAidLoaded(){
-        if(isFirstAidLoaded == null) isFirstAidLoaded = Loader.isModLoaded("firstaid");
+        if(isFirstAidLoaded == null) isFirstAidLoaded = FermiumJarScanner.isModPresent("firstaid");
         return isFirstAidLoaded;
     }
 }

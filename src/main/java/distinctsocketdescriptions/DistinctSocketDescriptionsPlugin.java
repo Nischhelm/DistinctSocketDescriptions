@@ -2,6 +2,7 @@ package distinctsocketdescriptions;
 
 import distinctsocketdescriptions.compat.ModLoaded;
 import fermiumbooter.FermiumRegistryAPI;
+import fermiumbooter.util.FermiumJarScanner;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.spongepowered.asm.launch.MixinBootstrap;
@@ -12,11 +13,9 @@ import java.util.Map;
 public class DistinctSocketDescriptionsPlugin implements IFMLLoadingPlugin {
 
     public DistinctSocketDescriptionsPlugin() {
-        MixinBootstrap.init();
-
         //Gated so a missing DDD shows the missing dependency screen instead of failing the mixin
-        FermiumRegistryAPI.enqueueMixin(true, "mixins.dsd.ddd.json", () -> Loader.isModLoaded("distinctdamagedescriptions"));
-        FermiumRegistryAPI.enqueueMixin(true, "mixins.dsd.firstaid.json", ModLoaded::isFirstAidLoaded);
+        FermiumRegistryAPI.enqueueMixin("mixins.dsd.ddd.json", () -> FermiumJarScanner.isModPresent("distinctdamagedescriptions"));
+        FermiumRegistryAPI.enqueueMixin("mixins.dsd.firstaid.json", ModLoaded::isFirstAidLoaded);
     }
 
     @Override
